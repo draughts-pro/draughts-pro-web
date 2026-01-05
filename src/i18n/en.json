@@ -1,0 +1,54 @@
+{
+  "meta": {
+    "title": "Checkers - Play locally against AI or with friends remotely",
+    "description": "Play checkers online against AI or challenge friends remotely. Free browser-based checkers game with smooth gameplay and multiplayer support."
+  },
+  "mainMenu": {
+    "appName": "Checkers",
+    "appDesc": "Play locally against AI or with friends remotely",
+    "playAI": "Play against AI",
+    "playRemote": "Challenge friends online",
+    "settings": "Settings",
+    "comingSoon": "Coming Soon",
+    "comingSoonMessage": "Remote multiplayer is currently in development. Check back soon!",
+    "ok": "OK"
+  },
+  "settings": {
+    "title": "Settings",
+    "sound": "Sound",
+    "gameVariant": "Game Variant",
+    "difficulty": "Difficulty",
+    "language": "Language",
+    "easy": "Easy",
+    "medium": "Medium",
+    "hard": "Hard",
+    "backToMenu": "Back to Main Menu"
+  },
+  "variants": {
+    "international": "International Checkers (Polish Draughts)",
+    "nigerian": "Nigerian Checkers (Drafts)",
+    "american": "American Checkers (English Draughts)"
+  },
+  "game": {
+    "you": "You",
+    "ai": "AI",
+    "captured": "Captured",
+    "currentTurn": "Current Turn",
+    "gameMode": "Game Mode",
+    "hint": "Hint",
+    "forfeit": "Forfeit",
+    "backToMenu": "Back to Menu"
+  },
+  "gameOver": {
+    "youWon": "You Won!",
+    "youLost": "You Lost",
+    "draw": "Draw",
+    "youForfeited": "You forfeited the game",
+    "youCapturedAll": "You captured all opponent pieces!",
+    "aiCapturedAll": "AI captured all opponent pieces!",
+    "youHaveNoMoves": "You have no valid moves left",
+    "aiHasNoMoves": "AI has no valid moves left",
+    "newGame": "New Game",
+    "backToMenu": "Back to Menu"
+  }
+}

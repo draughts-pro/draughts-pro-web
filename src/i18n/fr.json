@@ -1,0 +1,54 @@
+{
+  "meta": {
+    "title": "Checkers - Jouez localement contre l'IA ou avec des amis à distance",
+    "description": "Jouez aux dames en ligne contre l'IA ou défiez des amis à distance. Jeu de dames gratuit dans le navigateur avec un gameplay fluide et support multijoueur."
+  },
+  "mainMenu": {
+    "appName": "Checkers",
+    "appDesc": "Jouez localement contre l'IA ou avec des amis à distance",
+    "playAI": "Jouer contre l'IA",
+    "playRemote": "Défier des amis en ligne",
+    "settings": "Paramètres",
+    "comingSoon": "Bientôt Disponible",
+    "comingSoonMessage": "Le multijoueur à distance est actuellement en développement. Revenez bientôt !",
+    "ok": "OK"
+  },
+  "settings": {
+    "title": "Paramètres",
+    "sound": "Son",
+    "gameVariant": "Variante de Jeu",
+    "difficulty": "Difficulté",
+    "language": "Langue",
+    "easy": "Facile",
+    "medium": "Moyen",
+    "hard": "Difficile",
+    "backToMenu": "Retour au Menu Principal"
+  },
+  "variants": {
+    "international": "Dames Internationales (Dames Polonaises)",
+    "nigerian": "Dames Nigérianes",
+    "american": "Dames Américaines (Dames Anglaises)"
+  },
+  "game": {
+    "you": "Vous",
+    "ai": "IA",
+    "captured": "Capturés",
+    "currentTurn": "Tour Actuel",
+    "gameMode": "Mode de Jeu",
+    "hint": "Indice",
+    "forfeit": "Abandonner",
+    "backToMenu": "Retour au Menu"
+  },
+  "gameOver": {
+    "youWon": "Vous avez gagné !",
+    "youLost": "Vous avez perdu",
+    "draw": "Match nul",
+    "youForfeited": "Vous avez abandonné la partie",
+    "youCapturedAll": "Vous avez capturé toutes les pièces adverses !",
+    "aiCapturedAll": "L'IA a capturé toutes vos pièces !",
+    "youHaveNoMoves": "Vous n'avez plus de coups valides",
+    "aiHasNoMoves": "L'IA n'a plus de coups valides",
+    "newGame": "Nouvelle Partie",
+    "backToMenu": "Retour au Menu"
+  }
+}
