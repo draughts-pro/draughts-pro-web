@@ -22,6 +22,7 @@
     "easy": "Easy",
     "medium": "Medium",
     "hard": "Hard",
+    "master": "Master",
     "backToMenu": "Back to Main Menu"
   },
   "variants": {
@@ -37,7 +38,13 @@
     "gameMode": "Game Mode",
     "hint": "Hint",
     "forfeit": "Forfeit",
-    "backToMenu": "Back to Menu"
+    "backToMenu": "Back to Menu",
+    "confirmBackToMenu": "Are you sure you want to go back to the menu?",
+    "confirmBackToMenuMessage": "The current game will be lost.",
+    "confirmForfeit": "Are you sure you want to forfeit?",
+    "confirmForfeitMessage": "You will lose the game.",
+    "confirm": "Confirm",
+    "cancel": "Cancel"
   },
   "gameOver": {
     "youWon": "You Won!",

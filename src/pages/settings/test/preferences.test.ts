@@ -134,10 +134,16 @@ describe("Preferences", () => {
       expect(prefs.difficulty).toBe(3);
     });
 
-    it("difficulty should be between 1 and 3", () => {
+    it("should allow setting master difficulty (4)", () => {
+      store.set(preferencesAtom, (prev) => ({ ...prev, difficulty: 4 }));
+      const prefs = store.get(preferencesAtom);
+      expect(prefs.difficulty).toBe(4);
+    });
+
+    it("difficulty should be between 1 and 4", () => {
       const prefs = store.get(preferencesAtom);
       expect(prefs.difficulty).toBeGreaterThanOrEqual(1);
-      expect(prefs.difficulty).toBeLessThanOrEqual(3);
+      expect(prefs.difficulty).toBeLessThanOrEqual(4);
     });
 
     it("should preserve other preferences when changing difficulty", () => {
@@ -289,8 +295,8 @@ describe("Preferences", () => {
       expect(validVariants).toContain(prefs.variant);
     });
 
-    it("difficulty should only be 1, 2, or 3", () => {
-      const validDifficulties: Array<1 | 2 | 3> = [1, 2, 3];
+    it("difficulty should only be 1, 2, 3, or 4", () => {
+      const validDifficulties: Array<1 | 2 | 3 | 4> = [1, 2, 3, 4];
       const prefs = store.get(preferencesAtom);
       expect(validDifficulties).toContain(prefs.difficulty);
     });

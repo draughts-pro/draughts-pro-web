@@ -4,7 +4,7 @@ import { languageAtom, translationsAtom } from "@/i18n";
 import { useAtom, useAtomValue } from "jotai";
 import React from "react";
 import { useNavigate } from "react-router-dom";
-import { preferencesAtom } from "./utils/preferences";
+import { preferencesAtom, type Difficulty } from "./utils/preferences";
 import { variants } from "./utils/variants";
 
 const Settings: React.FC = () => {
@@ -13,8 +13,8 @@ const Settings: React.FC = () => {
   const t = useAtomValue(translationsAtom);
   const [language, setLanguage] = useAtom(languageAtom);
 
-  const levelText = (lvl: 1 | 2 | 3) => {
-    return [t.settings.easy, t.settings.medium, t.settings.hard][lvl - 1];
+  const levelText = (lvl: Difficulty) => {
+    return [t.settings.easy, t.settings.medium, t.settings.hard, t.settings.master][lvl - 1];
   };
 
   return (
@@ -97,8 +97,8 @@ const Settings: React.FC = () => {
             <label className="block text-xl font-semibold mb-4 text-white">
               {t.settings.difficulty}
             </label>
-            <div className="flex space-x-3">
-              {([1, 2, 3] as const).map((level) => (
+            <div className="grid grid-cols-2 gap-3">
+              {([1, 2, 3, 4] as const).map((level) => (
                 <button
                   key={level}
                   onClick={() =>

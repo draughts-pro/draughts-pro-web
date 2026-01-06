@@ -5,6 +5,7 @@ describe("Constants", () => {
     expect(AI_SETTINGS.DEPTH.EASY).toBe(1);
     expect(AI_SETTINGS.DEPTH.MEDIUM).toBe(3);
     expect(AI_SETTINGS.DEPTH.HARD).toBe(5);
+    expect(AI_SETTINGS.DEPTH.MASTER).toBe(7);
   });
 
   it("should have correct piece values", () => {

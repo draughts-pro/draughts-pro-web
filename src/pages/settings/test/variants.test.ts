@@ -329,5 +329,3 @@ describe("Variants Configuration", () => {
     });
   });
 });
-
-const variantKeys = Object.keys(variants) as Array<keyof typeof variants>;

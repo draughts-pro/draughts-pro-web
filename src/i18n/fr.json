@@ -22,6 +22,7 @@
     "easy": "Facile",
     "medium": "Moyen",
     "hard": "Difficile",
+    "master": "Maître",
     "backToMenu": "Retour au Menu Principal"
   },
   "variants": {
@@ -37,7 +38,13 @@
     "gameMode": "Mode de Jeu",
     "hint": "Indice",
     "forfeit": "Abandonner",
-    "backToMenu": "Retour au Menu"
+    "backToMenu": "Retour au Menu",
+    "confirmBackToMenu": "Êtes-vous sûr de vouloir retourner au menu ?",
+    "confirmBackToMenuMessage": "La partie en cours sera perdue.",
+    "confirmForfeit": "Êtes-vous sûr de vouloir abandonner ?",
+    "confirmForfeitMessage": "Vous allez perdre la partie.",
+    "confirm": "Confirmer",
+    "cancel": "Annuler"
   },
   "gameOver": {
     "youWon": "Vous avez gagné !",

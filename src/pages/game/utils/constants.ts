@@ -3,6 +3,7 @@ export const AI_SETTINGS = {
     EASY: 1,
     MEDIUM: 3,
     HARD: 5,
+    MASTER: 7,
   },
   TOP_MOVES_COUNT: 3,
 } as const;
