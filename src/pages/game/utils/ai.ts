@@ -1,5 +1,6 @@
-import type { Variant } from "../settings/variants";
+import type { Variant } from "../../settings/utils/variants";
 import { cloneBoard, getPieceAt, setPieceAt } from "./board";
+import { AI_SETTINGS, PIECE_VALUES } from "./constants";
 import { getValidMoves, hasAnyCaptures } from "./rules";
 import type { BoardState, PieceColor, Position } from "./state";
 
@@ -19,7 +20,8 @@ function getAllValidMoves(
   variant: Variant
 ): MoveWithCaptures[] {
   const allMoves: MoveWithCaptures[] = [];
-  const mustCapture = variant.forcedCapture && hasAnyCaptures(board, color, variant);
+  const mustCapture =
+    variant.forcedCapture && hasAnyCaptures(board, color, variant);
 
   for (let row = 0; row < board.length; row++) {
     for (let col = 0; col < board[row].length; col++) {
@@ -27,7 +29,7 @@ function getAllValidMoves(
       if (piece && piece.color === color) {
         const from = { row, col };
         const moves = getValidMoves(board, from, mustCapture, variant);
-        allMoves.push(...moves.map(m => ({ from, ...m })));
+        allMoves.push(...moves.map((m) => ({ from, ...m })));
       }
     }
   }
@@ -35,10 +37,7 @@ function getAllValidMoves(
   return allMoves;
 }
 
-function evaluateBoard(
-  board: BoardState,
-  color: PieceColor
-): number {
+function evaluateBoard(board: BoardState, color: PieceColor): number {
   let score = 0;
 
   for (let row = 0; row < board.length; row++) {
@@ -46,7 +45,9 @@ function evaluateBoard(
       const piece = board[row][col];
       if (!piece) continue;
 
-      const pieceValue = piece.isKing ? 3 : 1;
+      const pieceValue = piece.isKing
+        ? PIECE_VALUES.KING
+        : PIECE_VALUES.REGULAR;
       const positionBonus = piece.isKing ? 0 : row / board.length;
 
       if (piece.color === color) {
@@ -111,7 +112,11 @@ function minimax(
     return evaluateBoard(board, aiColor);
   }
 
-  const currentColor = maximizingPlayer ? aiColor : aiColor === "dark" ? "light" : "dark";
+  const currentColor = maximizingPlayer
+    ? aiColor
+    : aiColor === "dark"
+      ? "light"
+      : "dark";
   const allMoves = getAllValidMoves(board, currentColor, variant);
 
   if (allMoves.length === 0) {
@@ -122,7 +127,15 @@ function minimax(
     let maxEval = -Infinity;
     for (const move of allMoves) {
       const newBoard = applyMove(board, move, variant);
-      const evaluation = minimax(newBoard, depth - 1, alpha, beta, false, aiColor, variant);
+      const evaluation = minimax(
+        newBoard,
+        depth - 1,
+        alpha,
+        beta,
+        false,
+        aiColor,
+        variant
+      );
       maxEval = Math.max(maxEval, evaluation);
       alpha = Math.max(alpha, evaluation);
       if (beta <= alpha) break;
@@ -132,13 +145,81 @@ function minimax(
     let minEval = Infinity;
     for (const move of allMoves) {
       const newBoard = applyMove(board, move, variant);
-      const evaluation = minimax(newBoard, depth - 1, alpha, beta, true, aiColor, variant);
+      const evaluation = minimax(
+        newBoard,
+        depth - 1,
+        alpha,
+        beta,
+        true,
+        aiColor,
+        variant
+      );
       minEval = Math.min(minEval, evaluation);
       beta = Math.min(beta, evaluation);
       if (beta <= alpha) break;
     }
     return minEval;
   }
+}
+
+function calculateEasyMove(allMoves: MoveWithCaptures[]): MoveWithCaptures {
+  const captureMoves = allMoves.filter((m) => m.capturedPieces.length > 0);
+  const movesToConsider = captureMoves.length > 0 ? captureMoves : allMoves;
+  return movesToConsider[Math.floor(Math.random() * movesToConsider.length)];
+}
+
+function calculateMediumMove(
+  allMoves: MoveWithCaptures[],
+  board: BoardState,
+  aiColor: PieceColor,
+  variant: Variant
+): MoveWithCaptures {
+  const evaluatedMoves: EvaluatedMove[] = allMoves.map((move) => {
+    const newBoard = applyMove(board, move, variant);
+    const score = minimax(
+      newBoard,
+      AI_SETTINGS.DEPTH.MEDIUM - 1,
+      -Infinity,
+      Infinity,
+      false,
+      aiColor,
+      variant
+    );
+    return { ...move, score };
+  });
+
+  evaluatedMoves.sort((a, b) => b.score - a.score);
+
+  const topMoves = evaluatedMoves.slice(
+    0,
+    Math.min(AI_SETTINGS.TOP_MOVES_COUNT, evaluatedMoves.length)
+  );
+  return topMoves[Math.floor(Math.random() * topMoves.length)];
+}
+
+function calculateHardMove(
+  allMoves: MoveWithCaptures[],
+  board: BoardState,
+  aiColor: PieceColor,
+  variant: Variant
+): MoveWithCaptures {
+  const evaluatedMoves: EvaluatedMove[] = allMoves.map((move) => {
+    const newBoard = applyMove(board, move, variant);
+    const score = minimax(
+      newBoard,
+      AI_SETTINGS.DEPTH.HARD - 1,
+      -Infinity,
+      Infinity,
+      false,
+      aiColor,
+      variant
+    );
+    return { ...move, score };
+  });
+
+  evaluatedMoves.sort((a, b) => b.score - a.score);
+
+  return evaluatedMoves[0];
 }
 
 export function calculateAIMove(
@@ -151,26 +232,14 @@ export function calculateAIMove(
 
   if (allMoves.length === 0) return null;
 
-  if (difficulty === 1) {
-    const captureMoves = allMoves.filter((m) => m.capturedPieces.length > 0);
-    const movesToConsider = captureMoves.length > 0 ? captureMoves : allMoves;
-    return movesToConsider[Math.floor(Math.random() * movesToConsider.length)];
+  switch (difficulty) {
+    case 1:
+      return calculateEasyMove(allMoves);
+    case 2:
+      return calculateMediumMove(allMoves, board, aiColor, variant);
+    case 3:
+      return calculateHardMove(allMoves, board, aiColor, variant);
+    default:
+      return calculateEasyMove(allMoves);
   }
-
-  const depth = difficulty === 2 ? 3 : 5;
-
-  const evaluatedMoves: EvaluatedMove[] = allMoves.map((move) => {
-    const newBoard = applyMove(board, move, variant);
-    const score = minimax(newBoard, depth - 1, -Infinity, Infinity, false, aiColor, variant);
-    return { ...move, score };
-  });
-
-  evaluatedMoves.sort((a, b) => b.score - a.score);
-
-  if (difficulty === 2) {
-    const topMoves = evaluatedMoves.slice(0, Math.min(3, evaluatedMoves.length));
-    return topMoves[Math.floor(Math.random() * topMoves.length)];
-  }
-
-  return evaluatedMoves[0];
 }

@@ -1,7 +1,7 @@
 import { atom } from "jotai";
 import { atomWithStorage } from "jotai/utils";
-import { preferencesAtom } from "../settings/preferences";
-import { variants } from "../settings/variants";
+import { preferencesAtom } from "../../settings/utils/preferences";
+import { variants } from "../../settings/utils/variants";
 import { createInitialBoard } from "./board";
 
 export type PieceColor = "dark" | "light";

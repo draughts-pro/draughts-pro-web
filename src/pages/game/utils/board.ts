@@ -1,4 +1,4 @@
-import type { Variant } from "../settings/variants";
+import type { Variant } from "../../settings/utils/variants";
 import type { BoardState, Piece, Position } from "./state";
 
 export function createInitialBoard(variant: Variant): BoardState {

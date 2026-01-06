@@ -1,4 +1,4 @@
-import type { Variant } from "../settings/variants";
+import type { Variant } from "../../settings/utils/variants";
 import { getPieceAt, isValidPosition } from "./board";
 import type { BoardState, Piece, PieceColor, Position } from "./state";
 
@@ -346,7 +346,11 @@ export function checkGameOver(
   board: BoardState,
   currentTurn: PieceColor,
   variant: Variant
-): { isOver: boolean; winner: PieceColor | null; reason: "capture" | "noMoves" | null } {
+): {
+  isOver: boolean;
+  winner: PieceColor | null;
+  reason: "capture" | "noMoves" | null;
+} {
   const currentPlayerHasMoves = hasValidMoves(board, currentTurn, variant);
 
   if (!currentPlayerHasMoves) {

@@ -5,21 +5,21 @@ import React, { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import Board from "../../components/Board";
 import GlassCard from "../../components/GlassCard";
-import { preferencesAtom } from "../settings/preferences";
+import { preferencesAtom } from "../settings/utils/preferences";
+import GameOverModal from "./ui/game-over-modal";
+import PlayerInfo from "./ui/player-info";
 import {
   executeAIMoveActionAtom,
   forfeitActionAtom,
   getHintActionAtom,
   newGameActionAtom,
-} from "./actions";
-import GameOverModal from "./game-over-modal";
-import PlayerInfo from "./player-info";
+} from "./utils/actions";
 import {
   capturedPiecesAtom,
   currentTurnAtom,
   gameModeAtom,
   isAiThinkingAtom,
-} from "./state";
+} from "./utils/state";
 
 const GameScreen: React.FC = () => {
   const navigate = useNavigate();

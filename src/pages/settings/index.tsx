@@ -4,8 +4,8 @@ import { languageAtom, translationsAtom } from "@/i18n";
 import { useAtom, useAtomValue } from "jotai";
 import React from "react";
 import { useNavigate } from "react-router-dom";
-import { preferencesAtom } from "./preferences";
-import { variants } from "./variants";
+import { preferencesAtom } from "./utils/preferences";
+import { variants } from "./utils/variants";
 
 const Settings: React.FC = () => {
   const navigate = useNavigate();

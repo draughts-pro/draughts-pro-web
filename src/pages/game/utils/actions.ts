@@ -1,7 +1,7 @@
+import { soundManager } from "@/pages/game/utils/sounds";
 import { atom } from "jotai";
-import { soundManager } from "@/utils/sounds";
-import { preferencesAtom } from "../settings/preferences";
-import { variants } from "../settings/variants";
+import { preferencesAtom } from "../../settings/utils/preferences";
+import { variants } from "../../settings/utils/variants";
 import { calculateAIMove } from "./ai";
 import {
   cloneBoard,
@@ -189,7 +189,12 @@ export const getHintActionAtom = atom(null, (get, set) => {
   if (gameMode === "ai" && currentTurn === "dark") return;
 
   // Use AI to calculate best move as hint
-  const hintMove = calculateAIMove(board, currentTurn, prefs.difficulty, variant);
+  const hintMove = calculateAIMove(
+    board,
+    currentTurn,
+    prefs.difficulty,
+    variant
+  );
 
   if (hintMove) {
     set(hintMoveAtom, { from: hintMove.from, to: hintMove.to });

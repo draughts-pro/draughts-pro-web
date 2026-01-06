@@ -3,8 +3,8 @@ import React from "react";
 import {
   movePieceActionAtom,
   selectPieceActionAtom,
-} from "../pages/game/actions";
-import { positionsEqual } from "../pages/game/board";
+} from "../pages/game/utils/actions";
+import { positionsEqual } from "../pages/game/utils/board";
 import {
   boardAtom,
   currentTurnAtom,
@@ -14,7 +14,7 @@ import {
   lastMoveAtom,
   selectedPieceAtom,
   validMovesAtom,
-} from "../pages/game/state";
+} from "../pages/game/utils/state";
 import Piece from "./Piece";
 
 const Board: React.FC = () => {
@@ -65,7 +65,8 @@ const Board: React.FC = () => {
         lastMove && positionsEqual(lastMove.from, { row, col });
       const isLastMoveTo =
         lastMove && positionsEqual(lastMove.to, { row, col });
-      const isHintFrom = hintMove && positionsEqual(hintMove.from, { row, col });
+      const isHintFrom =
+        hintMove && positionsEqual(hintMove.from, { row, col });
       const isHintTo = hintMove && positionsEqual(hintMove.to, { row, col });
 
       let squareColor = isDarkSquare ? "bg-board-dark" : "bg-board-light";

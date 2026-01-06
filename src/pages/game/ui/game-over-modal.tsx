@@ -3,9 +3,9 @@ import { Icon } from "@iconify/react";
 import { useAtomValue, useSetAtom } from "jotai";
 import React from "react";
 import { useNavigate } from "react-router-dom";
-import GlassCard from "../../components/GlassCard";
-import { newGameActionAtom } from "./actions";
-import { gameEndReasonAtom, gameStatusAtom, winnerAtom } from "./state";
+import GlassCard from "../../../components/GlassCard";
+import { newGameActionAtom } from "../utils/actions";
+import { gameEndReasonAtom, gameStatusAtom, winnerAtom } from "../utils/state";
 
 const GameOverModal: React.FC = () => {
   const gameStatus = useAtomValue(gameStatusAtom);
@@ -43,9 +43,11 @@ const GameOverModal: React.FC = () => {
   if (gameEndReason === "forfeit") {
     message = t.gameOver.youForfeited;
   } else if (gameEndReason === "capture") {
-    message = winner === "light" ? t.gameOver.youCapturedAll : t.gameOver.aiCapturedAll;
+    message =
+      winner === "light" ? t.gameOver.youCapturedAll : t.gameOver.aiCapturedAll;
   } else if (gameEndReason === "noMoves") {
-    message = winner === "light" ? t.gameOver.aiHasNoMoves : t.gameOver.youHaveNoMoves;
+    message =
+      winner === "light" ? t.gameOver.aiHasNoMoves : t.gameOver.youHaveNoMoves;
   }
 
   return (
@@ -57,9 +59,7 @@ const GameOverModal: React.FC = () => {
               <Icon icon={icon} className={`text-6xl ${iconClass}`} />
               <h2 className="text-3xl font-bold text-white">{title}</h2>
               {message && (
-                <p className="text-gray-300 text-center">
-                  {message}
-                </p>
+                <p className="text-gray-300 text-center">{message}</p>
               )}
             </div>
 
