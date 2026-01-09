@@ -9,6 +9,8 @@ import {
   getPieceAt,
   setPieceAt,
 } from "./board";
+import { multiplayerService } from "./multiplayer";
+import { multiplayerGameStateAtom } from "./multiplayer-state";
 import { checkGameOver, getValidMoves, hasAnyCaptures } from "./rules";
 import type { Position } from "./state";
 import {
@@ -23,7 +25,7 @@ import {
   lastMoveAtom,
   selectedPieceAtom,
   validMovesAtom,
-  winnerAtom,
+  winnerAtom
 } from "./state";
 
 export const selectPieceActionAtom = atom(null, (get, set, pos: Position) => {
@@ -33,8 +35,15 @@ export const selectPieceActionAtom = atom(null, (get, set, pos: Position) => {
   const prefs = get(preferencesAtom);
   const variant = variants[prefs.variant];
 
-  // Don't allow selection if game is over
   if (gameStatus !== "playing") {
+    return;
+  }
+
+  const multiplayerState = get(multiplayerGameStateAtom);
+  if (
+    multiplayerState.isMultiplayer &&
+    multiplayerState.playerColor !== currentTurn
+  ) {
     return;
   }
 
@@ -50,14 +59,12 @@ export const selectPieceActionAtom = atom(null, (get, set, pos: Position) => {
 
   const moves = getValidMoves(board, pos, mustCapture, variant);
 
-  // Prevent selecting pieces with no valid moves
   if (moves.length === 0) {
     set(selectedPieceAtom, null);
     set(validMovesAtom, []);
     return;
   }
 
-  // Update sound manager with current preference
   soundManager.setSoundEnabled(prefs.sound);
   soundManager.playSelect();
 
@@ -128,7 +135,6 @@ export const movePieceActionAtom = atom(null, (get, set, to: Position) => {
 
   const nextTurn = currentTurn === "dark" ? "light" : "dark";
 
-  // Update sound manager and play appropriate sound
   soundManager.setSoundEnabled(prefs.sound);
   if (shouldPromote) {
     soundManager.playPromotion();
@@ -145,24 +151,53 @@ export const movePieceActionAtom = atom(null, (get, set, to: Position) => {
   set(capturedPiecesAtom, newCapturedPieces);
   set(lastMoveAtom, { from, to });
 
-  // Check for game over
   const gameOver = checkGameOver(newBoard, nextTurn, variant);
   if (gameOver.isOver) {
     set(gameStatusAtom, gameOver.winner === "light" ? "won" : "lost");
     set(winnerAtom, gameOver.winner);
     set(gameEndReasonAtom, gameOver.reason);
 
-    // Play win/lose sound
     if (gameOver.winner === "light") {
       soundManager.playWin();
     } else {
       soundManager.playLose();
     }
+
+    const multiplayerState = get(multiplayerGameStateAtom);
+    if (multiplayerState.isMultiplayer && multiplayerState.room && multiplayerState.playerId) {
+      multiplayerService.endGame(
+        multiplayerState.room.id,
+        gameOver.winner || null,
+        gameOver.reason || "unknown"
+      );
+    }
+  }
+
+  const multiplayerState = get(multiplayerGameStateAtom);
+  if (multiplayerState.isMultiplayer && multiplayerState.room && multiplayerState.playerId) {
+    multiplayerService.makeMove(
+      multiplayerState.room.id,
+      multiplayerState.playerId,
+      { from, to, captures: moveData.capturedPieces },
+      newBoard,
+      nextTurn
+    );
   }
 });
 
 export const forfeitActionAtom = atom(null, (get, set) => {
   const prefs = get(preferencesAtom);
+  const multiplayerState = get(multiplayerGameStateAtom);
+
+  if (multiplayerState.isMultiplayer && multiplayerState.room && multiplayerState.playerId) {
+      const opponentColor = multiplayerState.playerColor === "light" ? "dark" : "light";
+      multiplayerService.endGame(
+          multiplayerState.room.id,
+          opponentColor,
+          "forfeit"
+      );
+      return;
+  }
 
   set(selectedPieceAtom, null);
   set(validMovesAtom, []);
@@ -171,7 +206,6 @@ export const forfeitActionAtom = atom(null, (get, set) => {
   set(winnerAtom, "dark");
   set(gameEndReasonAtom, "forfeit");
 
-  // Play lose sound
   soundManager.setSoundEnabled(prefs.sound);
   soundManager.playLose();
 });
@@ -184,11 +218,9 @@ export const getHintActionAtom = atom(null, (get, set) => {
   const prefs = get(preferencesAtom);
   const variant = variants[prefs.variant];
 
-  // Only provide hints during gameplay for the human player
   if (gameStatus !== "playing") return;
   if (gameMode === "ai" && currentTurn === "dark") return;
 
-  // Use AI to calculate best move as hint
   const hintMove = calculateAIMove(
     board,
     currentTurn,
@@ -199,7 +231,6 @@ export const getHintActionAtom = atom(null, (get, set) => {
   if (hintMove) {
     set(hintMoveAtom, { from: hintMove.from, to: hintMove.to });
 
-    // Clear hint after 3 seconds
     setTimeout(() => {
       set(hintMoveAtom, null);
     }, 3000);
@@ -283,7 +314,6 @@ export const executeAIMoveActionAtom = atom(null, async (get, set) => {
   const newCapturedPieces = { ...capturedPieces };
   newCapturedPieces.light += aiMove.capturedPieces.length;
 
-  // Update sound manager and play appropriate sound
   soundManager.setSoundEnabled(prefs.sound);
   if (shouldPromote) {
     soundManager.playPromotion();
@@ -299,14 +329,12 @@ export const executeAIMoveActionAtom = atom(null, async (get, set) => {
   set(isAiThinkingAtom, false);
   set(lastMoveAtom, { from: aiMove.from, to: aiMove.to });
 
-  // Check for game over
   const gameOver = checkGameOver(newBoard, "light", variant);
   if (gameOver.isOver) {
     set(gameStatusAtom, gameOver.winner === "light" ? "won" : "lost");
     set(winnerAtom, gameOver.winner);
     set(gameEndReasonAtom, gameOver.reason);
 
-    // Play win/lose sound
     if (gameOver.winner === "light") {
       soundManager.playWin();
     } else {
@@ -314,3 +342,47 @@ export const executeAIMoveActionAtom = atom(null, async (get, set) => {
     }
   }
 });
+
+export const applyOpponentMoveActionAtom = atom(
+  null,
+  (
+    get,
+    set,
+    moveData: {
+      from: Position;
+      to: Position;
+      board: any;
+      currentTurn: "light" | "dark";
+      captures?: Position[];
+    }
+  ) => {
+    const prefs = get(preferencesAtom);
+    const currentCaptured = get(capturedPiecesAtom);
+
+    // Update captured pieces count
+    if (moveData.captures && moveData.captures.length > 0) {
+      const newCaptured = { ...currentCaptured };
+      if (moveData.currentTurn === "light") {
+         newCaptured.light += moveData.captures.length;
+      } else {
+         newCaptured.dark += moveData.captures.length;
+      }
+      set(capturedPiecesAtom, newCaptured);
+    }
+
+    set(boardAtom, moveData.board);
+    set(currentTurnAtom, moveData.currentTurn);
+    set(lastMoveAtom, { from: moveData.from, to: moveData.to });
+    set(selectedPieceAtom, null);
+    set(validMovesAtom, []);
+
+    soundManager.setSoundEnabled(prefs.sound);
+    soundManager.playMove();
+
+    if (moveData.captures && moveData.captures.length > 0) {
+        soundManager.playCapture();
+    } else {
+        soundManager.playMove();
+    }
+  }
+);

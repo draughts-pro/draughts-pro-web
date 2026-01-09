@@ -10,16 +10,17 @@ import ConfirmationModal from "./ui/confirmation-modal";
 import GameOverModal from "./ui/game-over-modal";
 import PlayerInfo from "./ui/player-info";
 import {
-  executeAIMoveActionAtom,
-  forfeitActionAtom,
-  getHintActionAtom,
-  newGameActionAtom,
+    executeAIMoveActionAtom,
+    forfeitActionAtom,
+    getHintActionAtom,
+    newGameActionAtom,
 } from "./utils/actions";
+import { multiplayerGameStateAtom } from "./utils/multiplayer-state";
 import {
-  capturedPiecesAtom,
-  currentTurnAtom,
-  gameModeAtom,
-  isAiThinkingAtom,
+    capturedPiecesAtom,
+    currentTurnAtom,
+    gameModeAtom,
+    isAiThinkingAtom,
 } from "./utils/state";
 
 const GameScreen: React.FC = () => {
@@ -34,6 +35,8 @@ const GameScreen: React.FC = () => {
   const newGame = useSetAtom(newGameActionAtom);
   const t = useAtomValue(translationsAtom);
   const preferences = useAtomValue(preferencesAtom);
+  const multiplayerState = useAtomValue(multiplayerGameStateAtom);
+  const isMultiplayer = multiplayerState.isMultiplayer;
 
   const [confirmModalState, setConfirmModalState] = useState<{
     isOpen: boolean;
@@ -41,14 +44,16 @@ const GameScreen: React.FC = () => {
   }>({ isOpen: false, type: null });
 
   useEffect(() => {
-    newGame();
-  }, [newGame]);
+    if (!isMultiplayer) {
+      newGame();
+    }
+  }, [newGame, isMultiplayer]);
 
   useEffect(() => {
-    if (gameMode === "ai" && currentTurn === "dark" && !isAiThinking) {
+    if (!isMultiplayer && gameMode === "ai" && currentTurn === "dark" && !isAiThinking) {
       executeAIMove();
     }
-  }, [currentTurn, gameMode, isAiThinking, executeAIMove]);
+  }, [currentTurn, gameMode, isAiThinking, executeAIMove, isMultiplayer]);
 
   const handleBackToMenu = () => {
     setConfirmModalState({ isOpen: true, type: "backToMenu" });
@@ -119,6 +124,19 @@ const GameScreen: React.FC = () => {
   };
   const aiLabel = `${t.game.ai} (${difficultyLabels[preferences.difficulty]})`;
 
+  // Determine player names based on game mode
+  const player1Name = isMultiplayer
+    ? (multiplayerState.playerColor === "light"
+        ? multiplayerState.room?.players.find(p => p.color === "light")?.name || t.game.you
+        : multiplayerState.opponentName || "Opponent")
+    : t.game.you;
+
+  const player2Name = isMultiplayer
+    ? (multiplayerState.playerColor === "dark"
+        ? multiplayerState.room?.players.find(p => p.color === "dark")?.name || t.game.you
+        : multiplayerState.opponentName || "Opponent")
+    : aiLabel;
+
   return (
     <div className="flex flex-col min-h-dvh bg-primary">
       <GameOverModal />
@@ -142,11 +160,11 @@ const GameScreen: React.FC = () => {
       />
       <div className="lg:hidden p-4">
         <PlayerInfo
-          name={aiLabel}
+          name={player2Name}
           isTurn={currentTurn === "dark"}
           capturedCount={capturedPieces.light}
           pieceColor="dark"
-          isComputer={true}
+          isComputer={!isMultiplayer}
           isThinking={isAiThinking}
         />
       </div>
@@ -177,11 +195,11 @@ const GameScreen: React.FC = () => {
             </div>
           </GlassCard>
           <PlayerInfo
-            name={aiLabel}
+            name={player2Name}
             isTurn={currentTurn === "dark"}
             capturedCount={capturedPieces.light}
             pieceColor="dark"
-            isComputer={true}
+            isComputer={!isMultiplayer}
             isThinking={isAiThinking}
           />
         </div>
@@ -192,24 +210,26 @@ const GameScreen: React.FC = () => {
         </div>
         <div className="hidden lg:flex lg:w-80 lg:flex-col p-6 space-y-4">
           <PlayerInfo
-            name={t.game.you}
+            name={player1Name}
             isTurn={currentTurn === "light"}
             capturedCount={capturedPieces.dark}
             pieceColor="light"
           />
           <div className="flex-1 flex flex-col justify-end space-y-3">
-            <button
-              onClick={() => getHint()}
-              className="w-full flex items-center justify-between py-3 px-4 bg-white/20 hover:bg-white/30 text-white font-semibold rounded-xl transition group"
-            >
-              <div className="flex items-center space-x-2">
-                <Icon icon="mdi:lightbulb-outline" className="text-xl" />
-                <span>{t.game.hint}</span>
-              </div>
-              <kbd className="hidden md:inline-block px-2 py-1 text-xs font-mono bg-white/10 rounded border border-white/20 group-hover:bg-white/20 transition">
-                H
-              </kbd>
-            </button>
+            {!isMultiplayer && (
+              <button
+                onClick={() => getHint()}
+                className="w-full flex items-center justify-between py-3 px-4 bg-white/20 hover:bg-white/30 text-white font-semibold rounded-xl transition group"
+              >
+                <div className="flex items-center space-x-2">
+                  <Icon icon="mdi:lightbulb-outline" className="text-xl" />
+                  <span>{t.game.hint}</span>
+                </div>
+                <kbd className="hidden md:inline-block px-2 py-1 text-xs font-mono bg-white/10 rounded border border-white/20 group-hover:bg-white/20 transition">
+                  H
+                </kbd>
+              </button>
+            )}
             <button
               onClick={handleForfeit}
               className="w-full flex items-center justify-between py-3 px-4 bg-red-600/80 hover:bg-red-600 text-white font-semibold rounded-xl transition group"
@@ -233,7 +253,7 @@ const GameScreen: React.FC = () => {
       </div>
       <div className="lg:hidden p-4 space-y-4">
         <PlayerInfo
-          name={t.game.you}
+          name={player1Name}
           isTurn={currentTurn === "light"}
           capturedCount={capturedPieces.dark}
           pieceColor="light"
@@ -245,13 +265,15 @@ const GameScreen: React.FC = () => {
           >
             <Icon icon="mdi:arrow-left" className="text-lg" />
           </button>
-          <button
-            onClick={() => getHint()}
-            className="flex-1 flex items-center justify-center space-x-2 py-2 px-3 bg-white/20 hover:bg-white/30 text-white font-semibold rounded-xl transition text-sm"
-          >
-            <Icon icon="mdi:lightbulb-outline" className="text-lg" />
-            <span>{t.game.hint}</span>
-          </button>
+          {!isMultiplayer && (
+            <button
+              onClick={() => getHint()}
+              className="flex-1 flex items-center justify-center space-x-2 py-2 px-3 bg-white/20 hover:bg-white/30 text-white font-semibold rounded-xl transition text-sm"
+            >
+              <Icon icon="mdi:lightbulb-outline" className="text-lg" />
+              <span>{t.game.hint}</span>
+            </button>
+          )}
           <button
             onClick={handleForfeit}
             className="flex items-center justify-center px-3 py-2 bg-red-600/80 hover:bg-red-600 text-white font-semibold rounded-xl transition"

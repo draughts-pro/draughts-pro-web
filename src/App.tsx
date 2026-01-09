@@ -3,6 +3,8 @@ import { useDocumentMeta } from "@/i18n";
 import Game from "@/pages/game";
 import MainMenu from "@/pages/main-menu";
 import Settings from "@/pages/settings";
+import MultiplayerLobby from "@/pages/multiplayer-lobby";
+import MultiplayerGame from "@/pages/multiplayer-game";
 import React from "react";
 import { BrowserRouter, Navigate, Route, Routes } from "react-router-dom";
 
@@ -10,6 +12,8 @@ export const AppRoute = {
   mainMenu: "/",
   settings: "/settings",
   game: "/game",
+  multiplayerLobby: "/multiplayer",
+  multiplayerGame: "/multiplayer-game/:roomId",
 };
 
 const App: React.FC = () => {
@@ -37,6 +41,8 @@ const App: React.FC = () => {
             <Route path={AppRoute.mainMenu} element={<MainMenu />} />
             <Route path={AppRoute.settings} element={<Settings />} />
             <Route path={AppRoute.game} element={<Game />} />
+            <Route path={AppRoute.multiplayerLobby} element={<MultiplayerLobby />} />
+            <Route path={AppRoute.multiplayerGame} element={<MultiplayerGame />} />
             <Route
               path="*"
               element={<Navigate to={AppRoute.mainMenu} replace />}

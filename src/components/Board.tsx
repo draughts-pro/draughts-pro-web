@@ -5,6 +5,7 @@ import {
   selectPieceActionAtom,
 } from "../pages/game/utils/actions";
 import { positionsEqual } from "../pages/game/utils/board";
+import { multiplayerGameStateAtom } from "../pages/game/utils/multiplayer-state";
 import {
   boardAtom,
   currentTurnAtom,
@@ -26,6 +27,7 @@ const Board: React.FC = () => {
   const currentTurn = useAtomValue(currentTurnAtom);
   const lastMove = useAtomValue(lastMoveAtom);
   const hintMove = useAtomValue(hintMoveAtom);
+  const multiplayerState = useAtomValue(multiplayerGameStateAtom);
   const selectPiece = useSetAtom(selectPieceActionAtom);
   const movePiece = useSetAtom(movePieceActionAtom);
 
@@ -33,7 +35,11 @@ const Board: React.FC = () => {
 
   const handleSquareClick = (row: number, col: number) => {
     if (isAiThinking) return;
-    if (gameMode === "ai" && currentTurn === "dark") return;
+    if (!multiplayerState.isMultiplayer && gameMode === "ai" && currentTurn === "dark") return;
+
+    if (multiplayerState.isMultiplayer && currentTurn !== multiplayerState.playerColor) {
+      return;
+    }
 
     const piece = board[row][col];
 
@@ -51,6 +57,8 @@ const Board: React.FC = () => {
       selectPiece({ row, col });
     }
   };
+
+  const shouldFlipBoard = multiplayerState.isMultiplayer && multiplayerState.playerColor === "dark";
 
   const squares = [];
   for (let row = 0; row < boardSize; row++) {
@@ -100,12 +108,14 @@ const Board: React.FC = () => {
     }
   }
 
+  const displaySquares = shouldFlipBoard ? squares.reverse() : squares;
+
   return (
     <div
       className="grid gap-0 rounded-lg overflow-hidden border-4 border-primary w-full h-full aspect-square"
       style={{ gridTemplateColumns: `repeat(${boardSize}, minmax(0, 1fr))` }}
     >
-      {squares}
+      {displaySquares}
     </div>
   );
 };

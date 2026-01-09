@@ -5,6 +5,7 @@ import React from "react";
 import { useNavigate } from "react-router-dom";
 import GlassCard from "../../../components/GlassCard";
 import { newGameActionAtom } from "../utils/actions";
+import { multiplayerGameStateAtom } from "../utils/multiplayer-state";
 import { gameEndReasonAtom, gameStatusAtom, winnerAtom } from "../utils/state";
 
 const GameOverModal: React.FC = () => {
@@ -14,6 +15,8 @@ const GameOverModal: React.FC = () => {
   const newGame = useSetAtom(newGameActionAtom);
   const navigate = useNavigate();
   const t = useAtomValue(translationsAtom);
+  const multiplayerState = useAtomValue(multiplayerGameStateAtom);
+  const isMultiplayer = multiplayerState.isMultiplayer;
 
   if (gameStatus === "playing") return null;
 
@@ -41,13 +44,29 @@ const GameOverModal: React.FC = () => {
 
   let message = "";
   if (gameEndReason === "forfeit") {
-    message = t.gameOver.youForfeited;
+    if (isMultiplayer) {
+      message = gameStatus === "won" ? t.gameOver.opponentForfeited : t.gameOver.youForfeited;
+    } else {
+      message = t.gameOver.youForfeited;
+    }
   } else if (gameEndReason === "capture") {
-    message =
-      winner === "light" ? t.gameOver.youCapturedAll : t.gameOver.aiCapturedAll;
+    if (isMultiplayer) {
+      message = gameStatus === "won" ? t.gameOver.youCapturedAll : t.gameOver.opponentCapturedAll;
+    } else {
+      message = winner === "light" ? t.gameOver.youCapturedAll : t.gameOver.aiCapturedAll;
+    }
   } else if (gameEndReason === "noMoves") {
-    message =
-      winner === "light" ? t.gameOver.aiHasNoMoves : t.gameOver.youHaveNoMoves;
+    if (isMultiplayer) {
+      message = gameStatus === "won" ? t.gameOver.opponentHasNoMoves : t.gameOver.youHaveNoMoves;
+    } else {
+      message = winner === "light" ? t.gameOver.aiHasNoMoves : t.gameOver.youHaveNoMoves;
+    }
+  } else if (gameEndReason === "disconnect") {
+    if (isMultiplayer) {
+      message = gameStatus === "won" ? t.gameOver.opponentDisconnected : t.gameOver.youDisconnected;
+    } else {
+      message = t.gameOver.opponentDisconnected;
+    }
   }
 
   return (
@@ -64,13 +83,15 @@ const GameOverModal: React.FC = () => {
             </div>
 
             <div className="flex flex-col space-y-3">
-              <button
-                onClick={() => newGame()}
-                className="w-full flex items-center justify-center space-x-2 py-3 px-6 bg-accent-green hover:bg-accent-green/80 text-white font-semibold rounded-xl transition"
-              >
-                <Icon icon="mdi:refresh" className="text-xl" />
-                <span>{t.gameOver.newGame}</span>
-              </button>
+              {!isMultiplayer && (
+                <button
+                  onClick={() => newGame()}
+                  className="w-full flex items-center justify-center space-x-2 py-3 px-6 bg-accent-green hover:bg-accent-green/80 text-white font-semibold rounded-xl transition"
+                >
+                  <Icon icon="mdi:refresh" className="text-xl" />
+                  <span>{t.gameOver.newGame}</span>
+                </button>
+              )}
               <button
                 onClick={() => navigate("/")}
                 className="w-full flex items-center justify-center space-x-2 py-3 px-6 bg-white/20 hover:bg-white/30 text-white font-semibold rounded-xl transition"
