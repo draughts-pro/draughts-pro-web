@@ -7,6 +7,7 @@ describe("Variants Configuration", () => {
       expect(variants.american).toBeDefined();
       expect(variants.international).toBeDefined();
       expect(variants.nigerian).toBeDefined();
+      expect(variants.brazilian).toBeDefined();
     });
 
     it("should have correct variant names", () => {
@@ -17,6 +18,7 @@ describe("Variants Configuration", () => {
         "International Checkers (Polish Draughts)"
       );
       expect(variants.nigerian.name).toBe("Nigerian Checkers (Drafts)");
+      expect(variants.brazilian.name).toBe("Brazilian Checkers");
     });
   });
 
@@ -86,6 +88,28 @@ describe("Variants Configuration", () => {
         expect(variants.nigerian.bottomLeftSquareColor).toBe("light");
       });
     });
+
+    describe("Brazilian Checkers", () => {
+      it("should have 8x8 board", () => {
+        expect(variants.brazilian.boardSize).toBe(8);
+      });
+
+      it("should have 12 pieces per player", () => {
+        expect(variants.brazilian.piecesPerPlayer).toBe(12);
+      });
+
+      it("should have 3 starting rows", () => {
+        expect(variants.brazilian.startingRows).toBe(3);
+      });
+
+      it("should use dark squares", () => {
+        expect(variants.brazilian.darkSquaresUsed).toBe(true);
+      });
+
+      it("should have light bottom-left square", () => {
+        expect(variants.brazilian.bottomLeftSquareColor).toBe("light");
+      });
+    });
   });
 
   describe("Movement Rules", () => {
@@ -93,12 +117,14 @@ describe("Variants Configuration", () => {
       expect(variants.american.menMoveDirection).toBe("forward");
       expect(variants.international.menMoveDirection).toBe("forward");
       expect(variants.nigerian.menMoveDirection).toBe("forward");
+      expect(variants.brazilian.menMoveDirection).toBe("forward");
     });
 
     it("all variants should allow men to capture in both directions", () => {
       expect(variants.american.menCaptureDirection).toBe("both");
       expect(variants.international.menCaptureDirection).toBe("both");
       expect(variants.nigerian.menCaptureDirection).toBe("both");
+      expect(variants.brazilian.menCaptureDirection).toBe("both");
     });
 
     it("American kings should move only 1 square", () => {
@@ -115,6 +141,11 @@ describe("Variants Configuration", () => {
       expect(variants.nigerian.kingMoveDistance).toBe("unlimited");
       expect(variants.nigerian.kingCaptureDistance).toBe("unlimited");
     });
+
+    it("Brazilian kings should move unlimited distance", () => {
+      expect(variants.brazilian.kingMoveDistance).toBe("unlimited");
+      expect(variants.brazilian.kingCaptureDistance).toBe("unlimited");
+    });
   });
 
   describe("Capture Rules", () => {
@@ -122,41 +153,49 @@ describe("Variants Configuration", () => {
       expect(variants.american.forcedCapture).toBe(true);
       expect(variants.international.forcedCapture).toBe(true);
       expect(variants.nigerian.forcedCapture).toBe(true);
+      expect(variants.brazilian.forcedCapture).toBe(true);
     });
 
-    it("only International should require maximum capture", () => {
+    it("only International and Brazilian should require maximum capture", () => {
       expect(variants.american.mustCaptureMaximum).toBe(false);
       expect(variants.international.mustCaptureMaximum).toBe(true);
       expect(variants.nigerian.mustCaptureMaximum).toBe(false);
+      expect(variants.brazilian.mustCaptureMaximum).toBe(true);
     });
 
     it("all variants should allow multiple captures", () => {
       expect(variants.american.canCaptureMultiple).toBe(true);
       expect(variants.international.canCaptureMultiple).toBe(true);
       expect(variants.nigerian.canCaptureMultiple).toBe(true);
+      expect(variants.brazilian.canCaptureMultiple).toBe(true);
     });
 
     it("American should remove captured pieces immediately", () => {
       expect(variants.american.capturedPiecesRemovedWhen).toBe("immediately");
     });
 
-    it("International and Nigerian should remove captured pieces after sequence", () => {
+    it("International, Nigerian and Brazilian should remove captured pieces after sequence", () => {
       expect(variants.international.capturedPiecesRemovedWhen).toBe(
         "afterSequence"
       );
       expect(variants.nigerian.capturedPiecesRemovedWhen).toBe("afterSequence");
+      expect(variants.brazilian.capturedPiecesRemovedWhen).toBe(
+        "afterSequence"
+      );
     });
 
-    it("only International and Nigerian should allow passing over same square twice", () => {
+    it("International, Nigerian and Brazilian should allow passing over same square twice", () => {
       expect(variants.american.canPassOverSameSquareTwice).toBe(false);
       expect(variants.international.canPassOverSameSquareTwice).toBe(true);
       expect(variants.nigerian.canPassOverSameSquareTwice).toBe(true);
+      expect(variants.brazilian.canPassOverSameSquareTwice).toBe(true);
     });
 
     it("no variant should count kings more in captures", () => {
       expect(variants.american.captureCountsKingsMore).toBe(false);
       expect(variants.international.captureCountsKingsMore).toBe(false);
       expect(variants.nigerian.captureCountsKingsMore).toBe(false);
+      expect(variants.brazilian.captureCountsKingsMore).toBe(false);
     });
   });
 
@@ -165,18 +204,21 @@ describe("Variants Configuration", () => {
       expect(variants.american.promotionRow).toBe("lastRow");
       expect(variants.international.promotionRow).toBe("lastRow");
       expect(variants.nigerian.promotionRow).toBe("lastRow");
+      expect(variants.brazilian.promotionRow).toBe("lastRow");
     });
 
     it("only American should interrupt capture on promotion", () => {
       expect(variants.american.promotionInterruptsCapture).toBe(true);
       expect(variants.international.promotionInterruptsCapture).toBe(false);
       expect(variants.nigerian.promotionInterruptsCapture).toBe(false);
+      expect(variants.brazilian.promotionInterruptsCapture).toBe(false);
     });
 
     it("only American should promote to king mid-capture", () => {
       expect(variants.american.promotesToKingMidCapture).toBe(true);
       expect(variants.international.promotesToKingMidCapture).toBe(false);
       expect(variants.nigerian.promotesToKingMidCapture).toBe(false);
+      expect(variants.brazilian.promotesToKingMidCapture).toBe(false);
     });
   });
 
@@ -185,18 +227,21 @@ describe("Variants Configuration", () => {
       expect(variants.american.winConditions).toContain("captureAll");
       expect(variants.international.winConditions).toContain("captureAll");
       expect(variants.nigerian.winConditions).toContain("captureAll");
+      expect(variants.brazilian.winConditions).toContain("captureAll");
     });
 
     it("all variants should have blockAll win condition", () => {
       expect(variants.american.winConditions).toContain("blockAll");
       expect(variants.international.winConditions).toContain("blockAll");
       expect(variants.nigerian.winConditions).toContain("blockAll");
+      expect(variants.brazilian.winConditions).toContain("blockAll");
     });
 
     it("all variants should have exactly 2 win conditions", () => {
       expect(variants.american.winConditions).toHaveLength(2);
       expect(variants.international.winConditions).toHaveLength(2);
       expect(variants.nigerian.winConditions).toHaveLength(2);
+      expect(variants.brazilian.winConditions).toHaveLength(2);
     });
   });
 
@@ -205,17 +250,20 @@ describe("Variants Configuration", () => {
       expect(variants.american.drawConditions).toContain("agreement");
       expect(variants.international.drawConditions).toContain("agreement");
       expect(variants.nigerian.drawConditions).toContain("agreement");
+      expect(variants.brazilian.drawConditions).toContain("agreement");
     });
 
     it("all variants should support draw by no legal moves", () => {
       expect(variants.american.drawConditions).toContain("noLegalMoves");
       expect(variants.international.drawConditions).toContain("noLegalMoves");
       expect(variants.nigerian.drawConditions).toContain("noLegalMoves");
+      expect(variants.brazilian.drawConditions).toContain("noLegalMoves");
     });
 
-    it("American and International should support repetition draws", () => {
+    it("American, International and Brazilian should support repetition draws", () => {
       expect(variants.american.drawConditions).toContain("repetition");
       expect(variants.international.drawConditions).toContain("repetition");
+      expect(variants.brazilian.drawConditions).toContain("repetition");
       expect(variants.nigerian.drawConditions).not.toContain("repetition");
     });
 
@@ -224,6 +272,9 @@ describe("Variants Configuration", () => {
         "insufficientMaterial"
       );
       expect(variants.international.drawConditions).not.toContain(
+        "insufficientMaterial"
+      );
+      expect(variants.brazilian.drawConditions).not.toContain(
         "insufficientMaterial"
       );
       expect(variants.nigerian.drawConditions).toContain(
@@ -235,8 +286,9 @@ describe("Variants Configuration", () => {
       expect(variants.american.drawConditions).toContain("40MoveRule");
     });
 
-    it("International should have 25-move rule", () => {
+    it("International and Brazilian should have 25-move rule", () => {
       expect(variants.international.drawConditions).toContain("25MoveRule");
+      expect(variants.brazilian.drawConditions).toContain("25MoveRule");
     });
 
     it("Nigerian should not have move-count rules", () => {

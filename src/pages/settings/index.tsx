@@ -121,27 +121,28 @@ const Settings: React.FC = () => {
             <label className="block text-xl font-semibold mb-4 text-white">
               {t.settings.language}
             </label>
-            <div className="flex space-x-3">
-              <button
-                onClick={() => setLanguage("en")}
-                className={`w-full py-3 rounded-lg text-sm font-semibold transition-colors ${
-                  language === "en"
-                    ? "bg-primary text-white"
-                    : "bg-primary/50 hover:bg-gray-700"
-                }`}
-              >
-                English
-              </button>
-              <button
-                onClick={() => setLanguage("fr")}
-                className={`w-full py-3 rounded-lg text-sm font-semibold transition-colors ${
-                  language === "fr"
-                    ? "bg-primary text-white"
-                    : "bg-primary/50 hover:bg-gray-700"
-                }`}
-              >
-                Français
-              </button>
+            <div className="grid grid-cols-2 gap-3">
+              {[
+                { code: "en", label: "English" },
+                { code: "fr", label: "Français" },
+                { code: "nl", label: "Nederlands" },
+                { code: "pt", label: "Português" },
+                { code: "es", label: "Español" },
+                { code: "ru", label: "Русский" },
+                { code: "uk", label: "Українська" },
+              ].map((lang) => (
+                <button
+                  key={lang.code}
+                  onClick={() => setLanguage(lang.code as any)}
+                  className={`w-full py-3 rounded-lg text-sm font-semibold transition-colors ${
+                    language === lang.code
+                      ? "bg-primary text-white"
+                      : "bg-primary/50 hover:bg-gray-700"
+                  }`}
+                >
+                  {lang.label}
+                </button>
+              ))}
             </div>
           </div>
         </GlassCard>

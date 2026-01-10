@@ -239,6 +239,7 @@ describe("Variant-Specific Rules", () => {
         expect(variants.american.forcedCapture).toBe(true);
         expect(variants.international.forcedCapture).toBe(true);
         expect(variants.nigerian.forcedCapture).toBe(true);
+        expect(variants.brazilian.forcedCapture).toBe(true);
       });
     });
 
@@ -249,6 +250,10 @@ describe("Variant-Specific Rules", () => {
 
       it("International: should require maximum capture", () => {
         expect(variants.international.mustCaptureMaximum).toBe(true);
+      });
+
+      it("Brazilian: should require maximum capture", () => {
+        expect(variants.brazilian.mustCaptureMaximum).toBe(true);
       });
 
       it("Nigerian: should not require maximum capture", () => {
@@ -292,6 +297,7 @@ describe("Variant-Specific Rules", () => {
         expect(variants.american.canCaptureMultiple).toBe(true);
         expect(variants.international.canCaptureMultiple).toBe(true);
         expect(variants.nigerian.canCaptureMultiple).toBe(true);
+        expect(variants.brazilian.canCaptureMultiple).toBe(true);
       });
     });
 
@@ -308,6 +314,12 @@ describe("Variant-Specific Rules", () => {
 
       it("Nigerian: should remove pieces after sequence", () => {
         expect(variants.nigerian.capturedPiecesRemovedWhen).toBe(
+          "afterSequence"
+        );
+      });
+
+      it("Brazilian: should remove pieces after sequence", () => {
+        expect(variants.brazilian.capturedPiecesRemovedWhen).toBe(
           "afterSequence"
         );
       });
@@ -462,6 +474,9 @@ describe("Variant-Specific Rules", () => {
 
         expect(variants.nigerian.winConditions).toContain("captureAll");
         expect(variants.nigerian.winConditions).toContain("blockAll");
+
+        expect(variants.brazilian.winConditions).toContain("captureAll");
+        expect(variants.brazilian.winConditions).toContain("blockAll");
       });
     });
   });
@@ -488,10 +503,18 @@ describe("Variant-Specific Rules", () => {
       expect(variants.nigerian.startingRows).toBe(4);
     });
 
+    it("Brazilian: should create 8x8 board with 12 pieces per player", () => {
+      const board = createInitialBoard(variants.brazilian);
+      expect(board.length).toBe(8);
+      expect(variants.brazilian.piecesPerPlayer).toBe(12);
+      expect(variants.brazilian.startingRows).toBe(3);
+    });
+
     it("All variants: should use dark squares only", () => {
       expect(variants.american.darkSquaresUsed).toBe(true);
       expect(variants.international.darkSquaresUsed).toBe(true);
       expect(variants.nigerian.darkSquaresUsed).toBe(true);
+      expect(variants.brazilian.darkSquaresUsed).toBe(true);
     });
 
     it("American: should have dark bottom-left square", () => {
@@ -504,6 +527,10 @@ describe("Variant-Specific Rules", () => {
 
     it("Nigerian: should have light bottom-left square", () => {
       expect(variants.nigerian.bottomLeftSquareColor).toBe("light");
+    });
+
+    it("Brazilian: should have light bottom-left square", () => {
+      expect(variants.brazilian.bottomLeftSquareColor).toBe("light");
     });
   });
 });

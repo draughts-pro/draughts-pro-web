@@ -13,6 +13,8 @@
   --color-board-dark: #8b4513;
   --font-stylish: Chewy, sans-serif;
   --font-display: Outfit, sans-serif;
+  --breakpoint-xl: 84rem;
+  --breakpoint-2xl: 100rem;
 }
 
 @theme inline {

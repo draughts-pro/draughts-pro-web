@@ -10,17 +10,17 @@ import ConfirmationModal from "./ui/confirmation-modal";
 import GameOverModal from "./ui/game-over-modal";
 import PlayerInfo from "./ui/player-info";
 import {
-    executeAIMoveActionAtom,
-    forfeitActionAtom,
-    getHintActionAtom,
-    newGameActionAtom,
+  executeAIMoveActionAtom,
+  forfeitActionAtom,
+  getHintActionAtom,
+  newGameActionAtom,
 } from "./utils/actions";
 import { multiplayerGameStateAtom } from "./utils/multiplayer-state";
 import {
-    capturedPiecesAtom,
-    currentTurnAtom,
-    gameModeAtom,
-    isAiThinkingAtom,
+  capturedPiecesAtom,
+  currentTurnAtom,
+  gameModeAtom,
+  isAiThinkingAtom,
 } from "./utils/state";
 
 const GameScreen: React.FC = () => {
@@ -158,7 +158,7 @@ const GameScreen: React.FC = () => {
         onCancel={handleCancel}
         isDangerous={true}
       />
-      <div className="lg:hidden p-4">
+      <div className="xl:hidden p-4">
         <PlayerInfo
           name={player2Name}
           isTurn={currentTurn === "dark"}
@@ -168,8 +168,8 @@ const GameScreen: React.FC = () => {
           isThinking={isAiThinking}
         />
       </div>
-      <div className="flex-1 flex flex-col lg:flex-row">
-        <div className="hidden lg:flex lg:w-80 lg:flex-col p-6 space-y-4">
+      <div className="flex-1 flex flex-col xl:flex-row">
+        <div className="hidden xl:flex xl:w-80 xl:flex-col p-6 space-y-4 overflow-y-auto">
           <GlassCard>
             <div className="w-full p-4 space-y-3">
               <button
@@ -202,13 +202,45 @@ const GameScreen: React.FC = () => {
             isComputer={!isMultiplayer}
             isThinking={isAiThinking}
           />
+
+          {/* Combined Controls for Tablet/Small Laptop View */}
+          <div className="2xl:hidden space-y-4">
+            <PlayerInfo
+              name={player1Name}
+              isTurn={currentTurn === "light"}
+              capturedCount={capturedPieces.dark}
+              pieceColor="light"
+            />
+            <div className="space-y-3">
+              {!isMultiplayer && (
+                <button
+                  onClick={() => getHint()}
+                  className="w-full flex items-center justify-between py-3 px-4 bg-white/20 hover:bg-white/30 text-white font-semibold rounded-xl transition group"
+                >
+                  <div className="flex items-center space-x-2">
+                    <Icon icon="mdi:lightbulb-outline" className="text-xl" />
+                    <span>{t.game.hint}</span>
+                  </div>
+                </button>
+              )}
+              <button
+                onClick={handleForfeit}
+                className="w-full flex items-center justify-between py-3 px-4 bg-red-600/80 hover:bg-red-600 text-white font-semibold rounded-xl transition group"
+              >
+                <div className="flex items-center space-x-2">
+                  <Icon icon="mdi:flag" className="text-xl" />
+                  <span>{t.game.forfeit}</span>
+                </div>
+              </button>
+            </div>
+          </div>
         </div>
-        <div className="flex-1 flex items-center justify-center p-4 lg:p-8">
+        <div className="flex-1 flex items-center justify-center p-4 xl:p-8">
           <div className="w-full h-full flex items-center justify-center max-w-[90dvh] max-h-[90dvh] md:max-w-[min(90dvh,90dvw)] md:max-h-[min(90dvh,90dvw)]">
             <Board />
           </div>
         </div>
-        <div className="hidden lg:flex lg:w-80 lg:flex-col p-6 space-y-4">
+        <div className="hidden 2xl:flex 2xl:w-80 2xl:flex-col p-6 space-y-4">
           <PlayerInfo
             name={player1Name}
             isTurn={currentTurn === "light"}
@@ -251,7 +283,7 @@ const GameScreen: React.FC = () => {
           </div>
         </div>
       </div>
-      <div className="lg:hidden p-4 space-y-4">
+      <div className="xl:hidden p-4 space-y-4">
         <PlayerInfo
           name={player1Name}
           isTurn={currentTurn === "light"}

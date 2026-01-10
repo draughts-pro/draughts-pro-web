@@ -1,14 +1,15 @@
 {
   "meta": {
-    "title": "Draughts Pro - Jouez localement contre l'IA ou avec des amis à distance",
+    "title": "Jeu de Dames - Jouez localement contre l'IA ou avec des amis à distance",
     "description": "Jouez aux dames en ligne contre l'IA ou défiez des amis à distance. Jeu de dames gratuit dans le navigateur avec un gameplay fluide et support multijoueur."
   },
   "mainMenu": {
-    "appName": "Draughts Pro",
+    "appName": "Jeu de Dames",
     "appDesc": "Jouez localement contre l'IA ou avec des amis à distance",
     "playAI": "Jouer contre l'IA",
     "playRemote": "Défier des amis en ligne",
     "settings": "Paramètres",
+    "support": "Support & Feedback",
     "comingSoon": "Bientôt Disponible",
     "comingSoonMessage": "Le multijoueur à distance est actuellement en développement. Revenez bientôt !",
     "ok": "OK"
@@ -26,9 +27,10 @@
     "backToMenu": "Retour au Menu Principal"
   },
   "variants": {
-    "international": "Dames Internationales (Dames Polonaises)",
+    "international": "Dames Internationales",
     "nigerian": "Dames Nigérianes",
-    "american": "Dames Américaines (Dames Anglaises)"
+    "american": "Dames Américaines (Dames Anglaises)",
+    "brazilian": "Dames Brésiliennes"
   },
   "game": {
     "you": "Vous",

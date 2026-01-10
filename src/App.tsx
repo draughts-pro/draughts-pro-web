@@ -33,7 +33,7 @@ const App: React.FC = () => {
             fadeDistance={1.5}
             vignetteStrength={2}
             glowIntensity={0.1}
-            opacity={1}
+            opacity={0.5}
             gridRotation={0}
           />
         </div>

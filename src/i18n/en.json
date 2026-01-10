@@ -9,6 +9,7 @@
     "playAI": "Play against AI",
     "playRemote": "Challenge friends online",
     "settings": "Settings",
+    "support": "Support & Feedback",
     "comingSoon": "Coming Soon",
     "comingSoonMessage": "Remote multiplayer is currently in development. Check back soon!",
     "ok": "OK"
@@ -28,7 +29,8 @@
   "variants": {
     "international": "International Checkers (Polish Draughts)",
     "nigerian": "Nigerian Checkers (Drafts)",
-    "american": "American Checkers (English Draughts)"
+    "american": "American Checkers (English Draughts)",
+    "brazilian": "Brazilian Checkers"
   },
   "game": {
     "you": "You",
