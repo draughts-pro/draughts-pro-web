@@ -1,9 +1,10 @@
+import type { variants } from '@/pages/settings/utils/variants';
 import { io, Socket } from 'socket.io-client';
 
 const BACKEND_URL = import.meta.env.VITE_BACKEND_URL || 'http://localhost:8000';
 
 export type PieceColor = 'dark' | 'light';
-export type GameVariant = 'international' | 'nigerian' | 'american';
+export type GameVariant = keyof typeof variants;
 export type GameStatus = 'waiting' | 'playing' | 'finished';
 
 export interface Position {
