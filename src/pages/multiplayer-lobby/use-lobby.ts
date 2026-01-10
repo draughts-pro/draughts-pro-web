@@ -1,12 +1,13 @@
 import { useAtomValue } from "jotai";
 import { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import type { GameRoom } from "../game/utils/multiplayer";
 import { multiplayerService } from "../game/utils/multiplayer";
 import { preferencesAtom } from "../settings/utils/preferences";
 
 export default function useLobby() {
     const navigate = useNavigate();
+    const { roomId } = useParams<{ roomId?: string }>();
   const preferences = useAtomValue(preferencesAtom);
 
   const [mode, setMode] = useState<"menu" | "create" | "join">("menu");
@@ -33,6 +34,12 @@ export default function useLobby() {
     };
 
     connectToServer();
+    
+    // If roomId is present in URL, pre-fill and switch to join mode
+    if (roomId && mode === "menu") {
+      setRoomCode(roomId.toUpperCase());
+      setMode("join");
+    }
 
     return () => {
       if (room) {

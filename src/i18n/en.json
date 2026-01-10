@@ -1,10 +1,10 @@
 {
   "meta": {
-    "title": "Draughts Pro - Play locally against AI or with friends remotely for free",
+    "title": "Draughts - Play locally against AI or with friends remotely for free",
     "description": "Play checkers online against AI or challenge friends remotely for free. Free browser-based checkers game with smooth gameplay and multiplayer support."
   },
   "mainMenu": {
-    "appName": "Draughts Pro",
+    "appName": "Draughts",
     "appDesc": "Play locally against AI or with friends remotely",
     "playAI": "Play against AI",
     "playRemote": "Challenge friends online",
@@ -56,7 +56,10 @@
     "joinRoom": "Join Room",
     "roomCode": "Room Code",
     "shareCode": "Share this code with your friend",
+    "shareLink": "Share this link with your friend",
     "copyCode": "Copy room code",
+    "copyLink": "Copy Link",
+    "linkCopied": "Link Copied!",
     "players": "Players",
     "you": "(You)",
     "playingAs": "Playing as",

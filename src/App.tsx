@@ -2,9 +2,9 @@ import RippleGrid from "@/components/RippleGrid";
 import { useDocumentMeta } from "@/i18n";
 import Game from "@/pages/game";
 import MainMenu from "@/pages/main-menu";
-import Settings from "@/pages/settings";
-import MultiplayerLobby from "@/pages/multiplayer-lobby";
 import MultiplayerGame from "@/pages/multiplayer-game";
+import MultiplayerLobby from "@/pages/multiplayer-lobby";
+import Settings from "@/pages/settings";
 import React from "react";
 import { BrowserRouter, Navigate, Route, Routes } from "react-router-dom";
 
@@ -14,6 +14,7 @@ export const AppRoute = {
   game: "/game",
   multiplayerLobby: "/multiplayer",
   multiplayerGame: "/multiplayer-game/:roomId",
+  joinRoom: "/join/:roomId",
 };
 
 const App: React.FC = () => {
@@ -42,6 +43,7 @@ const App: React.FC = () => {
             <Route path={AppRoute.settings} element={<Settings />} />
             <Route path={AppRoute.game} element={<Game />} />
             <Route path={AppRoute.multiplayerLobby} element={<MultiplayerLobby />} />
+            <Route path={AppRoute.joinRoom} element={<MultiplayerLobby />} />
             <Route path={AppRoute.multiplayerGame} element={<MultiplayerGame />} />
             <Route
               path="*"
