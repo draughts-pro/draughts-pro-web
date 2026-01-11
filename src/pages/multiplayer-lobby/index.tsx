@@ -25,10 +25,10 @@ const MultiplayerLobby: React.FC = () => {
     (h.room?.status === "playing"); // Allow "start" if game is already playing
 
   return (
-    <div className="flex items-center justify-center min-h-screen w-full p-4">
-      <div className="w-full max-w-md max-h-[90vh]">
+    <div className="flex items-center justify-center min-h-dvh w-full p-4">
+      <div className="w-full max-w-md max-h-[90dvh]">
         <GlassCard> 
-          <div className="w-full p-8 space-y-6 max-h-[85vh] overflow-y-auto">
+          <div className="w-full p-8 space-y-6 max-h-[85dvh] overflow-y-auto">
             <div className="flex items-center justify-between">
               <button
                 onClick={h.handleBack}

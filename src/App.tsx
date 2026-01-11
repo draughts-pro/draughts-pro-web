@@ -22,7 +22,7 @@ const App: React.FC = () => {
 
   return (
     <BrowserRouter>
-      <div className="relative w-screen h-screen">
+      <div className="relative w-screen h-dvh">
         <div className="absolute inset-0 w-full h-full z-0">
           <RippleGrid
             enableRainbow={false}

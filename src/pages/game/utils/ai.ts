@@ -15,6 +15,27 @@ interface EvaluatedMove extends MoveWithCaptures {
   score: number;
 }
 
+// Transposition table entry
+interface TTEntry {
+  depth: number;
+  score: number;
+  flag: "exact" | "lowerbound" | "upperbound";
+}
+
+// Simple board hashing using Zobrist-like approach
+function hashBoard(board: BoardState, currentColor: PieceColor): string {
+  let hash = currentColor;
+  for (let row = 0; row < board.length; row++) {
+    for (let col = 0; col < board[row].length; col++) {
+      const piece = board[row][col];
+      if (piece) {
+        hash += `${row},${col}:${piece.color}${piece.isKing ? "K" : ""}|`;
+      }
+    }
+  }
+  return hash;
+}
+
 function getAllValidMoves(
   board: BoardState,
   color: PieceColor,
@@ -36,6 +57,45 @@ function getAllValidMoves(
   }
 
   return allMoves;
+}
+
+// Order moves for better alpha-beta pruning
+function orderMoves(
+  moves: MoveWithCaptures[],
+  board: BoardState
+): MoveWithCaptures[] {
+  return moves
+    .map((move) => {
+      let priority = 0;
+
+      // Captures are high priority, more captures = higher priority
+      priority += move.capturedPieces.length * 100;
+
+      // Promotions are valuable
+      const piece = getPieceAt(board, move.from);
+      if (piece && !piece.isKing) {
+        const promotionRow =
+          piece.color === "dark" ? board.length - 1 : 0;
+        if (move.to.row === promotionRow) {
+          priority += 50;
+        }
+        // Advancing toward promotion
+        const progressBefore =
+          piece.color === "dark" ? move.from.row : board.length - 1 - move.from.row;
+        const progressAfter =
+          piece.color === "dark" ? move.to.row : board.length - 1 - move.to.row;
+        priority += (progressAfter - progressBefore) * 5;
+      }
+
+      // Center control is slightly preferred
+      const centerCol = board[0].length / 2;
+      const centerDistance = Math.abs(move.to.col - centerCol);
+      priority += (centerCol - centerDistance) * 2;
+
+      return { move, priority };
+    })
+    .sort((a, b) => b.priority - a.priority)
+    .map((m) => m.move);
 }
 
 function evaluateBoard(
@@ -110,6 +170,12 @@ function evaluateBoard(
       score += kingAdvantage;
     }
 
+    // Mobility bonus: having more move options is good
+    const myMoves = getAllValidMoves(board, color, variant).length;
+    const oppColor = color === "dark" ? "light" : "dark";
+    const oppMoves = getAllValidMoves(board, oppColor, variant).length;
+    score += (myMoves - oppMoves) * 0.1;
+
     if (opponentPieces + opponentKings === 0) {
       score += 1000;
     }
@@ -159,70 +225,278 @@ function applyMove(
   return newBoard;
 }
 
+// Quiescence search: continue searching captures until position is "quiet"
+function quiescence(
+  board: BoardState,
+  alpha: number,
+  beta: number,
+  aiColor: PieceColor,
+  currentColor: PieceColor,
+  variant: Variant,
+  useAdvancedEval: boolean,
+  maxQuiesceDepth: number = 4
+): number {
+  const standPat = evaluateBoard(board, aiColor, variant, useAdvancedEval);
+  const maximizing = currentColor === aiColor;
+
+  if (maxQuiesceDepth === 0) {
+    return standPat;
+  }
+
+  if (maximizing) {
+    if (standPat >= beta) return beta;
+    if (standPat > alpha) alpha = standPat;
+  } else {
+    if (standPat <= alpha) return alpha;
+    if (standPat < beta) beta = standPat;
+  }
+
+  const allMoves = getAllValidMoves(board, currentColor, variant);
+  const captureMoves = allMoves.filter((m) => m.capturedPieces.length > 0);
+
+  // If no captures, position is quiet
+  if (captureMoves.length === 0) {
+    return standPat;
+  }
+
+  const oppColor = currentColor === "dark" ? "light" : "dark";
+
+  if (maximizing) {
+    for (const move of captureMoves) {
+      const newBoard = applyMove(board, move, variant);
+      const score = quiescence(
+        newBoard,
+        alpha,
+        beta,
+        aiColor,
+        oppColor,
+        variant,
+        useAdvancedEval,
+        maxQuiesceDepth - 1
+      );
+      if (score > alpha) alpha = score;
+      if (alpha >= beta) break;
+    }
+    return alpha;
+  } else {
+    for (const move of captureMoves) {
+      const newBoard = applyMove(board, move, variant);
+      const score = quiescence(
+        newBoard,
+        alpha,
+        beta,
+        aiColor,
+        oppColor,
+        variant,
+        useAdvancedEval,
+        maxQuiesceDepth - 1
+      );
+      if (score < beta) beta = score;
+      if (alpha >= beta) break;
+    }
+    return beta;
+  }
+}
+
 function minimax(
   board: BoardState,
   depth: number,
+  maxDepth: number,
   alpha: number,
   beta: number,
   maximizingPlayer: boolean,
   aiColor: PieceColor,
   variant: Variant,
-  useAdvancedEval: boolean = false
+  useAdvancedEval: boolean = false,
+  transpositionTable: Map<string, TTEntry> | null = null,
+  useQuiescence: boolean = false
 ): number {
-  if (depth === 0) {
-    return evaluateBoard(board, aiColor, variant, useAdvancedEval);
-  }
-
   const currentColor = maximizingPlayer
     ? aiColor
     : aiColor === "dark"
       ? "light"
       : "dark";
-  const allMoves = getAllValidMoves(board, currentColor, variant);
 
-  if (allMoves.length === 0) {
-    return maximizingPlayer ? -Infinity : Infinity;
+  // Check transposition table
+  const boardHash = transpositionTable
+    ? hashBoard(board, currentColor)
+    : null;
+
+  if (boardHash && transpositionTable) {
+    const ttEntry = transpositionTable.get(boardHash);
+    if (ttEntry && ttEntry.depth >= depth) {
+      if (ttEntry.flag === "exact") {
+        return ttEntry.score;
+      } else if (ttEntry.flag === "lowerbound") {
+        alpha = Math.max(alpha, ttEntry.score);
+      } else if (ttEntry.flag === "upperbound") {
+        beta = Math.min(beta, ttEntry.score);
+      }
+      if (alpha >= beta) {
+        return ttEntry.score;
+      }
+    }
   }
 
+  if (depth === 0) {
+    if (useQuiescence) {
+      return quiescence(
+        board,
+        alpha,
+        beta,
+        aiColor,
+        currentColor,
+        variant,
+        useAdvancedEval
+      );
+    }
+    return evaluateBoard(board, aiColor, variant, useAdvancedEval);
+  }
+
+  let allMoves = getAllValidMoves(board, currentColor, variant);
+
+  if (allMoves.length === 0) {
+    // Prefer winning sooner, losing later
+    const mateScore = maximizingPlayer
+      ? -10000 + (maxDepth - depth)
+      : 10000 - (maxDepth - depth);
+    return mateScore;
+  }
+
+  // Order moves for better pruning
+  allMoves = orderMoves(allMoves, board);
+
+  let bestScore: number;
+  let ttFlag: "exact" | "lowerbound" | "upperbound";
+
   if (maximizingPlayer) {
-    let maxEval = -Infinity;
+    bestScore = -Infinity;
+    ttFlag = "upperbound";
+
     for (const move of allMoves) {
       const newBoard = applyMove(board, move, variant);
       const evaluation = minimax(
         newBoard,
         depth - 1,
+        maxDepth,
         alpha,
         beta,
         false,
         aiColor,
         variant,
-        useAdvancedEval
+        useAdvancedEval,
+        transpositionTable,
+        useQuiescence
       );
-      maxEval = Math.max(maxEval, evaluation);
-      alpha = Math.max(alpha, evaluation);
-      if (beta <= alpha) break;
+      if (evaluation > bestScore) {
+        bestScore = evaluation;
+      }
+      if (bestScore > alpha) {
+        alpha = bestScore;
+        ttFlag = "exact";
+      }
+      if (beta <= alpha) {
+        ttFlag = "lowerbound";
+        break;
+      }
     }
-    return maxEval;
   } else {
-    let minEval = Infinity;
+    bestScore = Infinity;
+    ttFlag = "upperbound";
+
     for (const move of allMoves) {
       const newBoard = applyMove(board, move, variant);
       const evaluation = minimax(
         newBoard,
         depth - 1,
+        maxDepth,
         alpha,
         beta,
         true,
         aiColor,
         variant,
-        useAdvancedEval
+        useAdvancedEval,
+        transpositionTable,
+        useQuiescence
       );
-      minEval = Math.min(minEval, evaluation);
-      beta = Math.min(beta, evaluation);
-      if (beta <= alpha) break;
+      if (evaluation < bestScore) {
+        bestScore = evaluation;
+      }
+      if (bestScore < beta) {
+        beta = bestScore;
+        ttFlag = "exact";
+      }
+      if (beta <= alpha) {
+        ttFlag = "lowerbound";
+        break;
+      }
     }
-    return minEval;
   }
+
+  // Store in transposition table
+  if (boardHash && transpositionTable) {
+    transpositionTable.set(boardHash, {
+      depth,
+      score: bestScore,
+      flag: ttFlag,
+    });
+  }
+
+  return bestScore;
+}
+
+// Iterative deepening wrapper
+function iterativeDeepening(
+  board: BoardState,
+  aiColor: PieceColor,
+  variant: Variant,
+  maxDepth: number,
+   initialMoves: MoveWithCaptures[], 
+  useAdvancedEval: boolean = false,
+  useQuiescence: boolean = false
+): EvaluatedMove[] {
+  let allMoves = orderMoves(initialMoves, board);
+
+  let evaluatedMoves: EvaluatedMove[] = allMoves.map((move) => ({
+    ...move,
+    score: 0,
+  }));
+
+  const transpositionTable = new Map<string, TTEntry>();
+
+  // Search at increasing depths
+  for (let depth = 1; depth <= maxDepth; depth++) {
+    const newEvaluations: EvaluatedMove[] = [];
+
+    for (const move of evaluatedMoves) {
+      const newBoard = applyMove(board, move, variant);
+      const score = minimax(
+        newBoard,
+        depth - 1,
+        depth,
+        -Infinity,
+        Infinity,
+        false,
+        aiColor,
+        variant,
+        useAdvancedEval,
+        transpositionTable,
+        useQuiescence
+      );
+      newEvaluations.push({
+        from: move.from,
+        to: move.to,
+        capturedPieces: move.capturedPieces,
+        score,
+      });
+    }
+
+    // Sort by score for next iteration (best moves first)
+    newEvaluations.sort((a, b) => b.score - a.score);
+    evaluatedMoves = newEvaluations;
+  }
+
+  return evaluatedMoves;
 }
 
 function calculateEasyMove(allMoves: MoveWithCaptures[]): MoveWithCaptures {
@@ -237,21 +511,13 @@ function calculateMediumMove(
   aiColor: PieceColor,
   variant: Variant
 ): MoveWithCaptures {
-  const evaluatedMoves: EvaluatedMove[] = allMoves.map((move) => {
-    const newBoard = applyMove(board, move, variant);
-    const score = minimax(
-      newBoard,
-      AI_SETTINGS.DEPTH.MEDIUM - 1,
-      -Infinity,
-      Infinity,
-      false,
-      aiColor,
-      variant
-    );
-    return { ...move, score };
-  });
-
-  evaluatedMoves.sort((a, b) => b.score - a.score);
+  const evaluatedMoves = iterativeDeepening(
+    board,
+    aiColor,
+    variant,
+    AI_SETTINGS.DEPTH.MEDIUM,
+    allMoves,
+  );
 
   const topMoves = evaluatedMoves.slice(
     0,
@@ -266,21 +532,15 @@ function calculateHardMove(
   aiColor: PieceColor,
   variant: Variant
 ): MoveWithCaptures {
-  const evaluatedMoves: EvaluatedMove[] = allMoves.map((move) => {
-    const newBoard = applyMove(board, move, variant);
-    const score = minimax(
-      newBoard,
-      AI_SETTINGS.DEPTH.HARD - 1,
-      -Infinity,
-      Infinity,
-      false,
-      aiColor,
-      variant
-    );
-    return { ...move, score };
-  });
-
-  evaluatedMoves.sort((a, b) => b.score - a.score);
+  const evaluatedMoves = iterativeDeepening(
+    board,
+    aiColor,
+    variant,
+    AI_SETTINGS.DEPTH.HARD,
+    allMoves,
+    false,
+    true // Enable quiescence
+  );
 
   return evaluatedMoves[0];
 }
@@ -291,22 +551,15 @@ function calculateMasterMove(
   aiColor: PieceColor,
   variant: Variant
 ): MoveWithCaptures {
-  const evaluatedMoves: EvaluatedMove[] = allMoves.map((move) => {
-    const newBoard = applyMove(board, move, variant);
-    const score = minimax(
-      newBoard,
-      AI_SETTINGS.DEPTH.MASTER - 1,
-      -Infinity,
-      Infinity,
-      false,
-      aiColor,
-      variant,
-      true
-    );
-    return { ...move, score };
-  });
-
-  evaluatedMoves.sort((a, b) => b.score - a.score);
+  const evaluatedMoves = iterativeDeepening(
+    board,
+    aiColor,
+    variant,
+    AI_SETTINGS.DEPTH.MASTER,
+    allMoves,
+    true, // Advanced evaluation
+    true  // Enable quiescence
+  );
 
   return evaluatedMoves[0];
 }
