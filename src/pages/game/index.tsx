@@ -124,18 +124,19 @@ const GameScreen: React.FC = () => {
   };
   const aiLabel = `${t.game.ai} (${difficultyLabels[preferences.difficulty]})`;
 
-  // Determine player names based on game mode
-  const player1Name = isMultiplayer
-    ? (multiplayerState.playerColor === "light"
-        ? multiplayerState.room?.players.find(p => p.color === "light")?.name || t.game.you
-        : multiplayerState.opponentName || "Opponent")
+  const bottomPlayerName = isMultiplayer
+    ? multiplayerState.room?.players.find(p => p.id === multiplayerState.playerId)?.name || t.game.you
     : t.game.you;
 
-  const player2Name = isMultiplayer
-    ? (multiplayerState.playerColor === "dark"
-        ? multiplayerState.room?.players.find(p => p.color === "dark")?.name || t.game.you
-        : multiplayerState.opponentName || "Opponent")
+  const topPlayerName = isMultiplayer
+    ? multiplayerState.opponentName || "Opponent"
     : aiLabel;
+
+  const bottomPlayerColor = isMultiplayer ? (multiplayerState.playerColor || "light") : "light";
+  const topPlayerColor = bottomPlayerColor === "light" ? "dark" : "light";
+
+  const bottomCapturedCount = capturedPieces[topPlayerColor as "light" | "dark"];
+  const topCapturedCount = capturedPieces[bottomPlayerColor as "light" | "dark"];
 
   return (
     <div className="flex flex-col min-h-dvh bg-primary">
@@ -160,10 +161,10 @@ const GameScreen: React.FC = () => {
       />
       <div className="xl:hidden p-4">
         <PlayerInfo
-          name={player2Name}
-          isTurn={currentTurn === "dark"}
-          capturedCount={capturedPieces.light}
-          pieceColor="dark"
+          name={topPlayerName}
+          isTurn={currentTurn === topPlayerColor}
+          capturedCount={topCapturedCount}
+          pieceColor={topPlayerColor}
           isComputer={!isMultiplayer}
           isThinking={isAiThinking}
         />
@@ -195,10 +196,10 @@ const GameScreen: React.FC = () => {
             </div>
           </GlassCard>
           <PlayerInfo
-            name={player2Name}
-            isTurn={currentTurn === "dark"}
-            capturedCount={capturedPieces.light}
-            pieceColor="dark"
+            name={topPlayerName}
+            isTurn={currentTurn === topPlayerColor}
+            capturedCount={topCapturedCount}
+            pieceColor={topPlayerColor}
             isComputer={!isMultiplayer}
             isThinking={isAiThinking}
           />
@@ -206,10 +207,10 @@ const GameScreen: React.FC = () => {
           {/* Combined Controls for Tablet/Small Laptop View */}
           <div className="2xl:hidden space-y-4">
             <PlayerInfo
-              name={player1Name}
-              isTurn={currentTurn === "light"}
-              capturedCount={capturedPieces.dark}
-              pieceColor="light"
+              name={bottomPlayerName}
+              isTurn={currentTurn === bottomPlayerColor}
+              capturedCount={bottomCapturedCount}
+              pieceColor={bottomPlayerColor}
             />
             <div className="space-y-3">
               {!isMultiplayer && (
@@ -242,10 +243,10 @@ const GameScreen: React.FC = () => {
         </div>
         <div className="hidden 2xl:flex 2xl:w-80 2xl:flex-col p-6 space-y-4">
           <PlayerInfo
-            name={player1Name}
-            isTurn={currentTurn === "light"}
-            capturedCount={capturedPieces.dark}
-            pieceColor="light"
+            name={bottomPlayerName}
+            isTurn={currentTurn === bottomPlayerColor}
+            capturedCount={bottomCapturedCount}
+            pieceColor={bottomPlayerColor}
           />
           <div className="flex-1 flex flex-col justify-end space-y-3">
             {!isMultiplayer && (
@@ -285,10 +286,10 @@ const GameScreen: React.FC = () => {
       </div>
       <div className="xl:hidden p-4 space-y-4">
         <PlayerInfo
-          name={player1Name}
-          isTurn={currentTurn === "light"}
-          capturedCount={capturedPieces.dark}
-          pieceColor="light"
+          name={bottomPlayerName}
+          isTurn={currentTurn === bottomPlayerColor}
+          capturedCount={bottomCapturedCount}
+          pieceColor={bottomPlayerColor}
         />
         <div className="flex gap-2">
           <button

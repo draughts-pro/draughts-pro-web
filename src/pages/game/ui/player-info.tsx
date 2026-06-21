@@ -34,6 +34,9 @@ const PlayerInfo: React.FC<{
           <div className="flex items-center space-x-3">
             <div>
               <div className="flex items-center space-x-2">
+                <div className="w-5 h-5">
+                  <PNGPiece color={pieceColor} isKing={false} />
+                </div>
                 <h3 className="font-bold text-lg text-white">{name}</h3>
                 {isComputer && (
                   <Icon icon="mdi:robot" className="text-white text-xl" />
@@ -46,9 +49,6 @@ const PlayerInfo: React.FC<{
                 )}
               </div>
               <div className="flex items-center space-x-2 text-sm text-gray-300 mt-1">
-                <div className="w-5 h-5">
-                  <PNGPiece color={pieceColor} isKing={false} />
-                </div>
                 <span className="font-semibold">
                   {t.game.captured}: {capturedCount}
                 </span>
@@ -66,6 +66,9 @@ const PlayerInfo: React.FC<{
         </div>
         <div className="hidden lg:block space-y-2">
           <div className="flex items-center space-x-2">
+            <div className="w-5 h-5">
+              <PNGPiece color={pieceColor} isKing={false} />
+            </div>
             <h3 className="font-bold text-lg text-white">{name}</h3>
             {isComputer && (
               <Icon icon="mdi:robot" className="text-white text-xl" />
@@ -78,9 +81,6 @@ const PlayerInfo: React.FC<{
             )}
           </div>
           <div className="flex items-center space-x-2 text-sm text-gray-300">
-            <div className="w-5 h-5">
-              <PNGPiece color={pieceColor} isKing={false} />
-            </div>
             <span className="font-semibold">
               {t.game.captured}: {capturedCount}
             </span>
