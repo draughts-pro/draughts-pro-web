@@ -1,12 +1,60 @@
+import { MiniPiece } from "@/components/Piece";
+import GameButton from "@/components/ui/GameButton";
+import { Crown, Icon } from "@/components/ui/icons";
+import Modal from "@/components/ui/Modal";
 import { translationsAtom } from "@/i18n";
-import { Icon } from "@iconify/react";
 import { useAtomValue, useSetAtom } from "jotai";
-import React from "react";
+import React, { useMemo } from "react";
 import { useNavigate } from "react-router-dom";
-import GlassCard from "../../../components/GlassCard";
 import { newGameActionAtom } from "../utils/actions";
 import { multiplayerGameStateAtom } from "../utils/multiplayer-state";
 import { gameEndReasonAtom, gameStatusAtom, winnerAtom } from "../utils/state";
+
+const CONFETTI_COLORS = [
+  "oklch(0.84 0.16 84)",
+  "oklch(0.74 0.19 145)",
+  "oklch(0.66 0.15 243)",
+  "oklch(0.63 0.21 27)",
+  "oklch(0.97 0.02 90)",
+];
+
+const Confetti: React.FC = () => {
+  // Deterministic spread so the burst looks the same on every render.
+  const bits = useMemo(
+    () =>
+      Array.from({ length: 42 }, (_, i) => {
+        const r = (n: number) => ((Math.sin(i * 12.9898 + n * 78.233) * 43758.5453) % 1 + 1) % 1;
+        return {
+          x: `${r(1) * 100}%`,
+          d: `${2.2 + r(2) * 1.8}s`,
+          delay: `${r(3) * 0.6}s`,
+          drift: `${(r(4) - 0.5) * 160}px`,
+          spin: `${(r(5) - 0.5) * 1440}deg`,
+          c: CONFETTI_COLORS[i % CONFETTI_COLORS.length],
+        };
+      }),
+    []
+  );
+  return (
+    <div className="confetti" aria-hidden>
+      {bits.map((b, i) => (
+        <i
+          key={i}
+          style={
+            {
+              "--x": b.x,
+              "--d": b.d,
+              "--delay": b.delay,
+              "--drift": b.drift,
+              "--spin": b.spin,
+              "--c": b.c,
+            } as React.CSSProperties
+          }
+        />
+      ))}
+    </div>
+  );
+};
 
 const GameOverModal: React.FC = () => {
   const gameStatus = useAtomValue(gameStatusAtom);
@@ -22,25 +70,11 @@ const GameOverModal: React.FC = () => {
 
   const isWon = gameStatus === "won";
   const isLost = gameStatus === "lost";
-  const isDraw = gameStatus === "draw";
 
   let title = "";
-  let icon = "";
-  let iconClass = "";
-
-  if (isWon) {
-    title = t.gameOver.youWon;
-    icon = "mdi:trophy";
-    iconClass = "text-yellow-400";
-  } else if (isLost) {
-    title = t.gameOver.youLost;
-    icon = "mdi:emoticon-sad-outline";
-    iconClass = "text-red-400";
-  } else if (isDraw) {
-    title = t.gameOver.draw;
-    icon = "mdi:handshake";
-    iconClass = "text-blue-400";
-  }
+  if (isWon) title = t.gameOver.youWon;
+  else if (isLost) title = t.gameOver.youLost;
+  else title = t.gameOver.draw;
 
   let message = "";
   if (gameEndReason === "forfeit") {
@@ -69,41 +103,56 @@ const GameOverModal: React.FC = () => {
     }
   }
 
-  return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
-      <div className="w-full max-w-md">
-        <GlassCard>
-          <div className="p-8 space-y-6">
-            <div className="flex flex-col items-center space-y-4">
-              <Icon icon={icon} className={`text-6xl ${iconClass}`} />
-              <h2 className="text-3xl font-bold text-white">{title}</h2>
-              {message && (
-                <p className="text-gray-300 text-center">{message}</p>
-              )}
-            </div>
+  const myColor = isMultiplayer ? multiplayerState.playerColor ?? "light" : "light";
+  const theirColor = myColor === "light" ? "dark" : "light";
 
-            <div className="flex flex-col space-y-3">
-              {!isMultiplayer && (
-                <button
-                  onClick={() => newGame()}
-                  className="w-full flex items-center justify-center space-x-2 py-3 px-6 bg-accent-green hover:bg-accent-green/80 text-white font-semibold rounded-xl transition"
-                >
-                  <Icon icon="mdi:refresh" className="text-xl" />
-                  <span>{t.gameOver.newGame}</span>
-                </button>
-              )}
-              <button
-                onClick={() => navigate("/")}
-                className="w-full flex items-center justify-center space-x-2 py-3 px-6 bg-white/20 hover:bg-white/30 text-white font-semibold rounded-xl transition"
-              >
-                <Icon icon="mdi:arrow-left" className="text-xl" />
-                <span>{t.gameOver.backToMenu}</span>
-              </button>
-            </div>
+  return (
+    <>
+      {isWon && <Confetti />}
+      <Modal
+        ribbon={title}
+        ribbonTone={isWon ? "green" : isLost ? "red" : "blue"}
+        cardClassName={isLost ? "shake" : undefined}
+        backdrop={isWon ? <div className="rays" aria-hidden /> : undefined}
+      >
+        <div className="flex flex-col items-center text-center">
+          <div className="relative h-28 w-44 mb-3" aria-hidden>
+            {isWon ? (
+              <div className="trophy-bob absolute inset-0 flex flex-col items-center justify-end">
+                <Crown className="w-20 h-14 text-[var(--gold)] -mb-3 relative z-10 drop-shadow-md" />
+                <MiniPiece color={myColor} isKing size={88} />
+              </div>
+            ) : isLost ? (
+              <div className="absolute inset-0 flex items-end justify-center gap-1">
+                <span className="rotate-[-14deg] translate-y-2 opacity-90">
+                  <MiniPiece color={myColor} size={58} />
+                </span>
+                <MiniPiece color={theirColor} isKing size={84} />
+              </div>
+            ) : (
+              <div className="absolute inset-0 flex items-end justify-center -space-x-3">
+                <MiniPiece color="light" size={76} />
+                <MiniPiece color="dark" size={76} />
+              </div>
+            )}
           </div>
-        </GlassCard>
-      </div>
-    </div>
+          {message && <p className="text-lg font-extrabold text-card-text-muted mb-6 text-balance">{message}</p>}
+        </div>
+
+        <div className="flex flex-col gap-4">
+          {!isMultiplayer && (
+            <GameButton tone="green" size="lg" className="w-full" onClick={() => newGame()}>
+              <Icon name="refresh" className="w-6 h-6 relative" />
+              <span className="relative">{t.gameOver.newGame}</span>
+            </GameButton>
+          )}
+          <GameButton tone={isMultiplayer ? "blue" : "slate"} size="md" className="w-full" onClick={() => navigate("/")}>
+            <Icon name="home" className="w-5 h-5 relative" />
+            <span className="relative">{t.gameOver.backToMenu}</span>
+          </GameButton>
+        </div>
+      </Modal>
+    </>
   );
 };
 

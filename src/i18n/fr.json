@@ -1,7 +1,9 @@
 {
   "meta": {
     "title": "Jeu de Dames - Jouez localement contre l'IA ou avec des amis à distance",
-    "description": "Jouez aux dames en ligne contre l'IA ou défiez des amis à distance. Jeu de dames gratuit dans le navigateur avec un gameplay fluide et support multijoueur."
+    "titleOffline": "Jeu de Dames - Jouez localement contre l'IA gratuitement",
+    "description": "Jouez aux dames en ligne contre l'IA ou défiez des amis à distance. Jeu de dames gratuit dans le navigateur avec un gameplay fluide et support multijoueur.",
+    "descriptionOffline": "Jouez aux dames localement contre l'IA. Jeu de dames gratuit sur navigateur avec un gameplay fluide."
   },
   "mainMenu": {
     "appName": "Jeu de Dames",
@@ -46,7 +48,9 @@
     "confirmForfeit": "Êtes-vous sûr de vouloir abandonner ?",
     "confirmForfeitMessage": "Vous allez perdre la partie.",
     "confirm": "Confirmer",
-    "cancel": "Annuler"
+    "cancel": "Annuler",
+    "thinking": "Réflexion…",
+    "opponent": "Adversaire"
   },
   "lobby": {
     "title": "Multijoueur",

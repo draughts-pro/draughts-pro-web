@@ -47,12 +47,20 @@ export const useDocumentMeta = () => {
   const language = useAtomValue(languageAtom);
 
   useEffect(() => {
-    document.title = t.meta.title;
+    const isOffline = import.meta.env.VITE_OFFLINE_MODE === "true";
+    
+    document.title = isOffline 
+      ? (t.meta as any).titleOffline || `Draughts Pro - ${t.mainMenu.playAI}`
+      : t.meta.title;
+      
     document.documentElement.lang = language;
 
     const metaDescription = document.querySelector('meta[name="description"]');
     if (metaDescription) {
-      metaDescription.setAttribute("content", t.meta.description);
+      metaDescription.setAttribute("content", isOffline 
+        ? (t.meta as any).descriptionOffline || "Play checkers locally against AI. Free browser-based checkers game with smooth gameplay."
+        : t.meta.description
+      );
     }
   }, [t, language]);
 };

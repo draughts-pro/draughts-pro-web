@@ -1,7 +1,9 @@
 {
   "meta": {
     "title": "Jogo de Damas - Jogue localmente contra IA ou com amigos remotamente de graça",
-    "description": "Jogue damas online contra a IA ou desafie amigos remotamente de graça. Jogo de damas baseado em navegador com jogabilidade fluida e suporte multijogador."
+    "titleOffline": "Jogo de Damas - Jogue localmente contra a IA grátis",
+    "description": "Jogue damas online contra a IA ou desafie amigos remotamente de graça. Jogo de damas baseado em navegador com jogabilidade fluida e suporte multijogador.",
+    "descriptionOffline": "Jogue damas localmente contra a IA. Jogo de damas gratuito baseado em navegador com jogabilidade suave."
   },
   "mainMenu": {
     "appName": "Jogo de Damas",
@@ -46,7 +48,9 @@
     "confirmForfeit": "Tem certeza que deseja desistir?",
     "confirmForfeitMessage": "Você perderá o jogo.",
     "confirm": "Confirmar",
-    "cancel": "Cancelar"
+    "cancel": "Cancelar",
+    "thinking": "Pensando…",
+    "opponent": "Adversário"
   },
   "lobby": {
     "title": "Multijogador",
