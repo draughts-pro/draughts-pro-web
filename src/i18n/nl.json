@@ -1,7 +1,9 @@
 {
   "meta": {
     "title": "Damspel - Speel lokaal tegen AI of met vrienden op afstand gratis",
-    "description": "Speel dammen online tegen AI of daag vrienden op afstand gratis uit. Gratis browsergebaseerd damspel met soepele gameplay en multiplayer-ondersteuning."
+    "titleOffline": "Damspel - Speel lokaal tegen AI gratis",
+    "description": "Speel dammen online tegen AI of daag vrienden op afstand gratis uit. Gratis browsergebaseerd damspel met soepele gameplay en multiplayer-ondersteuning.",
+    "descriptionOffline": "Speel dammen lokaal tegen de AI. Gratis browsergebaseerd damspel met soepele gameplay."
   },
   "mainMenu": {
     "appName": "Damspel",
@@ -46,7 +48,9 @@
     "confirmForfeit": "Weet je zeker dat je wilt opgeven?",
     "confirmForfeitMessage": "Je verliest het spel.",
     "confirm": "Bevestigen",
-    "cancel": "Annuleren"
+    "cancel": "Annuleren",
+    "thinking": "Denkt na…",
+    "opponent": "Tegenstander"
   },
   "lobby": {
     "title": "Multiplayer",

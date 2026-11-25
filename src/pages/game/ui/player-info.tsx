@@ -1,10 +1,17 @@
-import PNGPiece from "@/components/PNGPiece";
+import { MiniPiece } from "@/components/Piece";
+import { Icon, PlayerFace, RobotFace } from "@/components/ui/icons";
 import { translationsAtom } from "@/i18n";
-import { Icon } from "@iconify/react";
 import clsx from "clsx";
 import { useAtomValue } from "jotai";
 import React from "react";
 
+const formatClock = (seconds: number) => {
+  const m = Math.floor(seconds / 60);
+  const s = seconds % 60;
+  return `${m}:${s.toString().padStart(2, "0")}`;
+};
+
+/** Game HUD card: avatar, name, turn badge, captured tally and turn clock. */
 const PlayerInfo: React.FC<{
   name: string;
   isTurn: boolean;
@@ -12,6 +19,9 @@ const PlayerInfo: React.FC<{
   pieceColor: "light" | "dark";
   isComputer?: boolean;
   isThinking?: boolean;
+  isRival?: boolean;
+  clockSeconds?: number;
+  className?: string;
 }> = ({
   name,
   isTurn,
@@ -19,83 +29,67 @@ const PlayerInfo: React.FC<{
   pieceColor,
   isComputer = false,
   isThinking = false,
+  isRival = false,
+  clockSeconds,
+  className,
 }) => {
   const t = useAtomValue(translationsAtom);
+  const opponentColor = pieceColor === "light" ? "dark" : "light";
+  const thinking = isThinking && isTurn;
 
   return (
-    <div
+    <section
       className={clsx(
-        "rounded-lg bg-white/20",
-        isTurn && "ring-2 ring-accent-blue"
+        "hud-panel flex items-center gap-3 p-2.5 pr-3 transition-shadow duration-300",
+        isTurn && "turn-glow",
+        className
       )}
+      aria-label={name}
     >
-      <div className="w-full p-4">
-        <div className="lg:hidden flex items-center justify-between">
-          <div className="flex items-center space-x-3">
-            <div>
-              <div className="flex items-center space-x-2">
-                <div className="w-5 h-5">
-                  <PNGPiece color={pieceColor} isKing={false} />
-                </div>
-                <h3 className="font-bold text-lg text-white">{name}</h3>
-                {isComputer && (
-                  <Icon icon="mdi:robot" className="text-white text-xl" />
-                )}
-                {isThinking && (
-                  <Icon
-                    icon="mdi:brain"
-                    className="text-accent-blue text-xl animate-pulse"
-                  />
-                )}
-              </div>
-              <div className="flex items-center space-x-2 text-sm text-gray-300 mt-1">
-                <span className="font-semibold">
-                  {t.game.captured}: {capturedCount}
-                </span>
-              </div>
-            </div>
-          </div>
-          {isTurn && (
-            <div className="flex items-center space-x-2">
-              <div className="w-2 h-2 bg-amber-300 rounded-full animate-pulse"></div>
-              <span className="text-sm text-amber-300 font-semibold">
-                {t.game.currentTurn}
-              </span>
-            </div>
-          )}
+      <div className={clsx("avatar", isComputer && "avatar--ai", isRival && "avatar--rival")}>
+        {isComputer ? <RobotFace className="w-9 h-9" /> : <PlayerFace className="w-9 h-9" />}
+        <MiniPiece color={pieceColor} size={24} />
+      </div>
+
+      <div className="min-w-0 flex-1">
+        <div className="flex items-center gap-2 min-w-0">
+          <h3 className="truncate text-[1.05rem] font-black leading-tight">{name}</h3>
         </div>
-        <div className="hidden lg:block space-y-2">
-          <div className="flex items-center space-x-2">
-            <div className="w-5 h-5">
-              <PNGPiece color={pieceColor} isKing={false} />
-            </div>
-            <h3 className="font-bold text-lg text-white">{name}</h3>
-            {isComputer && (
-              <Icon icon="mdi:robot" className="text-white text-xl" />
-            )}
-            {isThinking && (
-              <Icon
-                icon="mdi:brain"
-                className="text-accent-blue text-xl animate-pulse"
-              />
-            )}
-          </div>
-          <div className="flex items-center space-x-2 text-sm text-gray-300">
-            <span className="font-semibold">
-              {t.game.captured}: {capturedCount}
-            </span>
-          </div>
-          {isTurn && (
-            <div className="flex items-center space-x-2">
-              <div className="w-2 h-2 bg-amber-300 rounded-full animate-pulse"></div>
-              <span className="text-sm text-amber-300 font-semibold">
-                {t.game.currentTurn}
+        <div className="mt-1 h-6 flex items-center gap-2">
+          {thinking ? (
+            <span className="turn-badge" aria-live="polite">
+              <span className="sr-only">{t.game.thinking}</span>
+              <span aria-hidden className="inline-flex gap-1">
+                <span className="thinking-dot" />
+                <span className="thinking-dot" style={{ "--i": 1 } as React.CSSProperties} />
+                <span className="thinking-dot" style={{ "--i": 2 } as React.CSSProperties} />
               </span>
-            </div>
-          )}
+            </span>
+          ) : isTurn ? (
+            <span className="turn-badge">{t.game.currentTurn}</span>
+          ) : null}
         </div>
       </div>
-    </div>
+
+      <div className="flex flex-col items-end gap-1.5">
+        <div
+          className="flex items-center gap-1.5"
+          aria-label={`${t.game.captured}: ${capturedCount}`}
+          title={t.game.captured}
+        >
+          <MiniPiece color={opponentColor} size={20} />
+          <span key={capturedCount} className="num text-lg font-black leading-none pop-in" aria-hidden>
+            ×{capturedCount}
+          </span>
+        </div>
+        {clockSeconds !== undefined && (
+          <span className="clock text-sm" data-active={isTurn || undefined}>
+            <Icon name="clock" className="w-3.5 h-3.5" />
+            {formatClock(clockSeconds)}
+          </span>
+        )}
+      </div>
+    </section>
   );
 };
 

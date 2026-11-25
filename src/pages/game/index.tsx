@@ -1,10 +1,11 @@
 import { translationsAtom } from "@/i18n";
-import { Icon } from "@iconify/react";
 import { useAtomValue, useSetAtom } from "jotai";
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import Board from "../../components/Board";
-import GlassCard from "../../components/GlassCard";
+import GameButton from "../../components/ui/GameButton";
+import { Icon } from "../../components/ui/icons";
+import SoundToggle from "../../components/ui/SoundToggle";
 import { preferencesAtom } from "../settings/utils/preferences";
 import ConfirmationModal from "./ui/confirmation-modal";
 import GameOverModal from "./ui/game-over-modal";
@@ -20,8 +21,32 @@ import {
   capturedPiecesAtom,
   currentTurnAtom,
   gameModeAtom,
+  gameStatusAtom,
   isAiThinkingAtom,
+  type GameStatus,
+  type PieceColor,
 } from "./utils/state";
+
+/**
+ * Per-side turn clock for the HUD. Display only: counts seconds spent on each
+ * side's turns and resets whenever a new game starts.
+ */
+const useTurnClock = (turn: PieceColor, running: boolean, status: GameStatus) => {
+  const [times, setTimes] = useState({ light: 0, dark: 0 });
+  const [prevStatus, setPrevStatus] = useState(status);
+  if (prevStatus !== status) {
+    setPrevStatus(status);
+    if (status === "playing") setTimes({ light: 0, dark: 0 });
+  }
+  useEffect(() => {
+    if (!running) return;
+    const id = window.setInterval(() => {
+      setTimes((t) => ({ ...t, [turn]: t[turn] + 1 }));
+    }, 1000);
+    return () => window.clearInterval(id);
+  }, [turn, running]);
+  return times;
+};
 
 const GameScreen: React.FC = () => {
   const navigate = useNavigate();
@@ -29,6 +54,7 @@ const GameScreen: React.FC = () => {
   const capturedPieces = useAtomValue(capturedPiecesAtom);
   const gameMode = useAtomValue(gameModeAtom);
   const isAiThinking = useAtomValue(isAiThinkingAtom);
+  const gameStatus = useAtomValue(gameStatusAtom);
   const forfeit = useSetAtom(forfeitActionAtom);
   const getHint = useSetAtom(getHintActionAtom);
   const executeAIMove = useSetAtom(executeAIMoveActionAtom);
@@ -129,7 +155,7 @@ const GameScreen: React.FC = () => {
     : t.game.you;
 
   const topPlayerName = isMultiplayer
-    ? multiplayerState.opponentName || "Opponent"
+    ? multiplayerState.opponentName || t.game.opponent
     : aiLabel;
 
   const bottomPlayerColor = isMultiplayer ? (multiplayerState.playerColor || "light") : "light";
@@ -138,8 +164,16 @@ const GameScreen: React.FC = () => {
   const bottomCapturedCount = capturedPieces[topPlayerColor as "light" | "dark"];
   const topCapturedCount = capturedPieces[bottomPlayerColor as "light" | "dark"];
 
+  const clocks = useTurnClock(currentTurn, gameStatus === "playing", gameStatus);
+
+  const kbd = (key: string) => (
+    <kbd className="hidden lg:inline-block relative ml-1 rounded-md px-1.5 py-0.5 text-[0.7rem] font-black bg-black/15">
+      {key}
+    </kbd>
+  );
+
   return (
-    <div className="flex flex-col min-h-dvh bg-primary">
+    <div className="screen flex flex-col gap-3 overflow-hidden">
       <GameOverModal />
       <ConfirmationModal
         isOpen={confirmModalState.isOpen}
@@ -158,161 +192,64 @@ const GameScreen: React.FC = () => {
         onConfirm={handleConfirm}
         onCancel={handleCancel}
         isDangerous={true}
+        ribbon={confirmModalState.type === "backToMenu" ? t.game.backToMenu : t.game.forfeit}
       />
-      <div className="xl:hidden p-4">
+
+      <header className="flex items-center gap-3">
+        <GameButton tone="slate" size="icon" onClick={handleBackToMenu} aria-label={t.game.backToMenu}>
+          <Icon name="back" className="w-6 h-6 relative" />
+        </GameButton>
+        <div className="flex-1 min-w-0 text-center">
+          <p className="text-[0.65rem] font-black uppercase tracking-[0.12em] text-text-dim">{t.game.gameMode}</p>
+          <p className="truncate text-sm sm:text-base font-black">{t.variants[preferences.variant]}</p>
+        </div>
+        <SoundToggle />
+      </header>
+
+      <div className="game-grid flex-1 min-h-0">
         <PlayerInfo
+          className="[grid-area:top]"
           name={topPlayerName}
           isTurn={currentTurn === topPlayerColor}
           capturedCount={topCapturedCount}
           pieceColor={topPlayerColor}
           isComputer={!isMultiplayer}
+          isRival={isMultiplayer}
           isThinking={isAiThinking}
+          clockSeconds={clocks[topPlayerColor]}
         />
-      </div>
-      <div className="flex-1 flex flex-col xl:flex-row">
-        <div className="hidden xl:flex xl:w-80 xl:flex-col p-6 space-y-4 overflow-y-auto">
-          <GlassCard>
-            <div className="w-full p-4 space-y-3">
-              <button
-                onClick={handleBackToMenu}
-                className="w-full flex items-center justify-between px-4 py-2 bg-white/20 hover:bg-white/30 rounded-lg text-white font-semibold transition group"
-              >
-                <div className="flex items-center space-x-2">
-                  <Icon icon="mdi:arrow-left" className="text-xl" />
-                  <span>{t.game.backToMenu}</span>
-                </div>
-                <kbd className="hidden md:inline-block px-2 py-1 text-xs font-mono bg-white/10 rounded border border-white/20 group-hover:bg-white/20 transition">
-                  ESC
-                </kbd>
-              </button>
-              <div className="text-center">
-                <div className="text-xs text-gray-400 uppercase tracking-wider">
-                  {t.game.gameMode}
-                </div>
-                <div className="text-white font-semibold">
-                  {t.variants[preferences.variant]}
-                </div>
-              </div>
-            </div>
-          </GlassCard>
-          <PlayerInfo
-            name={topPlayerName}
-            isTurn={currentTurn === topPlayerColor}
-            capturedCount={topCapturedCount}
-            pieceColor={topPlayerColor}
-            isComputer={!isMultiplayer}
-            isThinking={isAiThinking}
-          />
 
-          {/* Combined Controls for Tablet/Small Laptop View */}
-          <div className="2xl:hidden space-y-4">
-            <PlayerInfo
-              name={bottomPlayerName}
-              isTurn={currentTurn === bottomPlayerColor}
-              capturedCount={bottomCapturedCount}
-              pieceColor={bottomPlayerColor}
-            />
-            <div className="space-y-3">
-              {!isMultiplayer && (
-                <button
-                  onClick={() => getHint()}
-                  className="w-full flex items-center justify-between py-3 px-4 bg-white/20 hover:bg-white/30 text-white font-semibold rounded-xl transition group"
-                >
-                  <div className="flex items-center space-x-2">
-                    <Icon icon="mdi:lightbulb-outline" className="text-xl" />
-                    <span>{t.game.hint}</span>
-                  </div>
-                </button>
-              )}
-              <button
-                onClick={handleForfeit}
-                className="w-full flex items-center justify-between py-3 px-4 bg-red-600/80 hover:bg-red-600 text-white font-semibold rounded-xl transition group"
-              >
-                <div className="flex items-center space-x-2">
-                  <Icon icon="mdi:flag" className="text-xl" />
-                  <span>{t.game.forfeit}</span>
-                </div>
-              </button>
-            </div>
-          </div>
+        <div className="board-stage [grid-area:board]">
+          <Board />
         </div>
-        <div className="flex-1 flex items-center justify-center p-4 xl:p-8">
-          <div className="w-full h-full flex items-center justify-center max-w-[90dvh] max-h-[90dvh] md:max-w-[min(90dvh,90dvw)] md:max-h-[min(90dvh,90dvw)]">
-            <Board />
-          </div>
-        </div>
-        <div className="hidden 2xl:flex 2xl:w-80 2xl:flex-col p-6 space-y-4">
-          <PlayerInfo
-            name={bottomPlayerName}
-            isTurn={currentTurn === bottomPlayerColor}
-            capturedCount={bottomCapturedCount}
-            pieceColor={bottomPlayerColor}
-          />
-          <div className="flex-1 flex flex-col justify-end space-y-3">
-            {!isMultiplayer && (
-              <button
-                onClick={() => getHint()}
-                className="w-full flex items-center justify-between py-3 px-4 bg-white/20 hover:bg-white/30 text-white font-semibold rounded-xl transition group"
-              >
-                <div className="flex items-center space-x-2">
-                  <Icon icon="mdi:lightbulb-outline" className="text-xl" />
-                  <span>{t.game.hint}</span>
-                </div>
-                <kbd className="hidden md:inline-block px-2 py-1 text-xs font-mono bg-white/10 rounded border border-white/20 group-hover:bg-white/20 transition">
-                  H
-                </kbd>
-              </button>
-            )}
-            <button
-              onClick={handleForfeit}
-              className="w-full flex items-center justify-between py-3 px-4 bg-red-600/80 hover:bg-red-600 text-white font-semibold rounded-xl transition group"
-            >
-              <div className="flex items-center space-x-2">
-                <Icon icon="mdi:flag" className="text-xl" />
-                <span>{t.game.forfeit}</span>
-              </div>
-              <kbd className="hidden md:inline-block px-2 py-1 text-xs font-mono bg-white/10 rounded border border-white/20 group-hover:bg-white/20 transition">
-                F
-              </kbd>
-            </button>
-            <div className="hidden md:block pt-2">
-              <div className="text-xs text-gray-400 text-center">
-                <Icon icon="mdi:keyboard" className="inline text-sm mr-1" />
-                Keyboard shortcuts available
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-      <div className="xl:hidden p-4 space-y-4">
+
         <PlayerInfo
+          className="[grid-area:bottom]"
           name={bottomPlayerName}
           isTurn={currentTurn === bottomPlayerColor}
           capturedCount={bottomCapturedCount}
           pieceColor={bottomPlayerColor}
+          clockSeconds={clocks[bottomPlayerColor]}
         />
-        <div className="flex gap-2">
-          <button
-            onClick={handleBackToMenu}
-            className="flex items-center justify-center px-3 py-2 bg-white/20 hover:bg-white/30 text-white font-semibold rounded-xl transition"
-          >
-            <Icon icon="mdi:arrow-left" className="text-lg" />
-          </button>
+
+        <div className="[grid-area:actions] flex gap-3">
           {!isMultiplayer && (
-            <button
-              onClick={() => getHint()}
-              className="flex-1 flex items-center justify-center space-x-2 py-2 px-3 bg-white/20 hover:bg-white/30 text-white font-semibold rounded-xl transition text-sm"
-            >
-              <Icon icon="mdi:lightbulb-outline" className="text-lg" />
-              <span>{t.game.hint}</span>
-            </button>
+            <GameButton tone="gold" size="md" className="flex-1" onClick={() => getHint()}>
+              <Icon name="bulb" className="w-6 h-6 relative" />
+              <span className="relative">{t.game.hint}</span>
+              {kbd("H")}
+            </GameButton>
           )}
-          <button
+          <GameButton
+            tone="red"
+            size="md"
+            className={isMultiplayer ? "flex-1" : "flex-1 max-w-[46%]"}
             onClick={handleForfeit}
-            className="flex items-center justify-center px-3 py-2 bg-red-600/80 hover:bg-red-600 text-white font-semibold rounded-xl transition"
           >
-            <Icon icon="mdi:flag" className="text-lg" />
-          </button>
+            <Icon name="flag" className="w-6 h-6 relative" />
+            <span className="relative">{t.game.forfeit}</span>
+            {kbd("F")}
+          </GameButton>
         </div>
       </div>
     </div>
